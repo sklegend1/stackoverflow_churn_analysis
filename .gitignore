@@ -1,0 +1,10 @@
+/mysql-data
+/comments_parquet
+/filtered_posts_parquet
+/filtered_users_parquet
+/posthistory_parquet
+/xml
+xml.rar
+*.parquet
+filtered_users.sql
+churn_env
