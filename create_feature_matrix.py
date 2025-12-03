@@ -130,11 +130,11 @@ users_meta = (
     elog
     .select(["user_id", "persona", "AccountCreationDate", "LastAccessDate"])
     .unique(subset=["user_id"])
-    .with_columns([
-        (pl.col("LastAccessDate").cast(pl.Date) - pl.col("AccountCreationDate"))
-            .dt.total_days()
-            .alias("account_age_days")
-    ])
+    # .with_columns([
+    #     (pl.col("LastAccessDate").cast(pl.Date) - pl.col("AccountCreationDate"))
+    #         .dt.total_days()
+    #         .alias("account_age_days")
+    # ])
 )
 
 # ============================================================
@@ -143,10 +143,10 @@ users_meta = (
 
 feature_matrix_lazy = (
     users_meta
-    .join(feature_total, on="user_id", how="left")
+    # .join(feature_total, on="user_id", how="left")
     .join(feature_action_counts, on="user_id", how="left")
-    .join(recency, on="user_id", how="left")
-    .join(gap_stats, on="user_id", how="left")
+    # .join(recency, on="user_id", how="left")
+    # .join(gap_stats, on="user_id", how="left")
     # .join(window_30, on="user_id", how="left")
     # .join(window_90, on="user_id", how="left")
     # .join(window_180, on="user_id", how="left")

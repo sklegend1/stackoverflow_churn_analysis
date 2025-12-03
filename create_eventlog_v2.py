@@ -4,9 +4,9 @@ import polars as pl
 # ---------- Action type mappings ----------
 
 PH_ACTION_MAP = {
-    1: 10,   # Initial Title
-    2: 11,   # Initial Body
-    3: 12,   # Initial Tags
+    # 1: 10,   # Initial Title
+    # 2: 11,   # Initial Body
+    # 3: 12,   # Initial Tags
     4: 13,   # Edit Title
     5: 14,   # Edit Body
     6: 15,   # Edit Tags
@@ -100,11 +100,12 @@ events_create_post = (
 )
 
 # ---------- Events: PostHistory (all types, actor-based) ----------
-
+PH_VALID = list(PH_ACTION_MAP.keys())
 # Keep only posthistory rows where the actor is one of our filtered users
 ph_user = (
     ph
     .join(users, left_on="userid", right_on="user_id", how="inner")
+    .filter(pl.col("posthistorytypeid").is_in(PH_VALID))
 )
 
 # Map posthistorytypeid to action_type_id

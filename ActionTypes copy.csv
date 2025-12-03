@@ -1,0 +1,39 @@
+ActionTypeId,Name,Description
+1,Create_Question,User creates a new question
+2,Create_Answer,User creates a new answer
+10,Initial_Title,User provides the initial title of a question
+11,Initial_Body,User provides the initial body of a post
+12,Initial_Tags,User provides initial tags for a question
+13,Edit_Title,User edits the title of a question
+14,Edit_Body,User edits the body/content of a post
+15,Edit_Tags,User edits tags of a question
+16,Rollback_Title,User reverts the title to a previous revision
+17,Rollback_Body,User reverts the body to a previous revision
+18,Rollback_Tags,User reverts tags to a previous revision
+30,Close_Post,User closes a post (requires privilege)
+31,Reopen_Post,User reopens a previously closed post
+32,Delete_Post,User deletes a post
+33,Undelete_Post,User restores a deleted post
+34,Lock_Post,User locks a post (moderator action)
+35,Unlock_Post,User unlocks a post
+40,Community_Owned,User converts post to community-owned
+41,Migrate_Legacy,Old-style migration event
+42,Merge_Post,User merges a question into another
+43,Protect_Question,User protects a question
+44,Unprotect_Question,User removes protection from a question
+45,Disassociate_Post,User removes ownership of a post
+46,Unmerge_Question,User unmerges previously merged questions
+47,Suggested_Edit_Applied,User applies a suggested edit
+48,Post_Tweeted,User tweets the post
+49,Move_To_Chat,User moves comment discussion to chat
+50,Add_Post_Notice,User adds a post notice
+51,Remove_Post_Notice,User removes a post notice
+52,Migrate_Away,User migrates post to another site
+53,Migrate_Here,User handles migration of a post into this site
+54,Merge_Source,User marks post as merge source
+55,Merge_Destination,User marks post as merge destination
+56,Bump_Post,User bumps post activity via Community User
+57,Add_HotNetwork,Post becomes a Hot Network Question
+58,Remove_HotNetwork,Post removed from Hot Network
+59,Wizard_Create,Post created via Ask Wizard
+70,Create_Comment,User writes a new comment
