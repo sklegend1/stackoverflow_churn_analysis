@@ -13,7 +13,7 @@ from sklearn.metrics import roc_auc_score
 # -----------------------------
 CORE_EVENTLOG_PATH = "core_eventlog_v1.parquet"
 SEED_LABELS_PATH = "seed_churn_labels_per_user.parquet"
-EVAL_TIME = pl.datetime(2019, 1, 1)  # evaluation cutoff
+EVAL_TIME = pl.datetime(2021, 1, 1)  # evaluation cutoff
 BATCH_SIZE = 64
 NUM_EPOCHS = 5
 LR = 1e-3
@@ -156,11 +156,11 @@ class TpApModel(nn.Module):
 
         # Raw parameters (unconstrained). We'll map them to positive in forward.
         # Initialize T with something like 7 days (in seconds)
-        init_T = np.full((num_personas,), 7 * 86400.0, dtype=np.float32)
+        init_T = np.full((num_personas,), 60 * 86400.0, dtype=np.float32)
         self.log_T_raw = nn.Parameter(torch.log(torch.from_numpy(init_T)))
 
         # Initialize Ap with small positive values
-        init_A = np.full((num_personas,), 1.0, dtype=np.float32)
+        init_A = np.full((num_personas,), 0.2, dtype=np.float32)
         self.A_raw = nn.Parameter(torch.from_numpy(init_A))
 
         # Warm-start action weights from w_init; enforce positivity via softplus
