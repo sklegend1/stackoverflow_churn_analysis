@@ -42,20 +42,21 @@ p95_map = dict(zip(p95_df["persona"], p95_df["p95_gap_sec"]))
 # cutoff_years = list(range(2016, 2023))
 # cutoffs every 6 months (Jan 1 and Jul 1) from 2008-01-01 to 2022-07-01
 cutoff_years = []
-for y in range(2016, 2023):
+for y in range(2014, 2023):
     cutoff_years.append((y, 1))
-    cutoff_years.append((y, 7))
+    cutoff_years.append((y, 5))
+    cutoff_years.append((y, 8))
 
 # Note: update the loop to unpack (year, month), e.g.:
 # for year, month in cutoff_years:
 #     cutoff = pl.datetime(year, month, 1)
 #     cutoff_str = f"{year:04d}-{month:02d}-01"
-grace_period_sec = 60 * 86400          # 180 days
+grace_period_sec = 180 * 86400          # 180 days
 
 # -------------------------------------------------------
 # alpha values to test (Tp = alpha * p95_gap_sec)
 # -------------------------------------------------------
-alpha_values = np.arange(5.5, 10.5, 1).tolist()  # [1, 5, 9, 13]
+alpha_values = np.arange(1.5, 15.5, 2).tolist()  # [1, 5, 9, 13]
 
 rows = []
 
@@ -173,7 +174,8 @@ for persona, p95_gap in p95_map.items():
                     else:
                         best = np.argmax(recall[1:])
                         Ap = float(thresholds[best])
-
+            if Ap < 0.1 :
+                continue
             # Binary prediction with Ap
             pred = (pred_prob >= Ap).astype(int)
 

@@ -13,11 +13,11 @@ elog = elog.with_columns([
 
 # -----------------------------------------
 # 2) Load best Ap / Tp per persona
-#    (خروجی قبلی gridsearch)
+#   
 # -----------------------------------------
 grid = pd.read_csv("tp_ap_xgb_joint_search_sliding.csv")
 
-# برای هر پرسونا، بهترین ردیف بر اساس AUC
+#  Select best row per persona based on AUC
 # best_params = (
 #     grid.sort_values(["persona", "auc"], ascending=[True, False])
 #         .groupby("persona")
@@ -25,26 +25,30 @@ grid = pd.read_csv("tp_ap_xgb_joint_search_sliding.csv")
 # )
 
 # Compute F1 as harmonic mean of precision & recall
-grid["F1"] = 2 * (grid["precision"] * grid["recall"]) / (
-    (grid["precision"] + grid["recall"]).replace(0, np.nan)
-)
+# grid["F1"] = 2 * (grid["precision"] * grid["recall"]) / (
+#     (grid["precision"] + grid["recall"]).replace(0, np.nan)
+# )
 
-# Select best row per persona based on F1
-best_params = (
-    grid.sort_values(["persona", "F1"], ascending=[True, False])
-        .groupby("persona")
-        .head(1)
-)
-print("Best params per persona based on F1:")
-print(best_params[["persona", "Ap", "Tp_sec", "precision", "recall"]])
-Ap_map = dict(zip(best_params["persona"], best_params["Ap"]))
-Tp_map = dict(zip(best_params["persona"], best_params["Tp_sec"]))
+# # Select best row per persona based on F1
+# best_params = (
+#     grid.sort_values(["persona", "F1"], ascending=[True, False])
+#         .groupby("persona")
+#         .head(1)
+# )
+# print("Best params per persona based on F1:")
+# print(best_params[["persona", "Ap", "Tp_sec", "precision", "recall"]])
+# Ap_map = dict(zip(best_params["persona"], best_params["Ap"]))
+# Tp_map = dict(zip(best_params["persona"], best_params["Tp_sec"]))
+
+pragmatic_best_params_file = pd.read_csv("best_params_sliding_median_f1.csv")
+Ap_map= dict(zip(pragmatic_best_params_file["persona"], pragmatic_best_params_file["Ap"]))
+Tp_map= dict(zip(pragmatic_best_params_file["persona"], pragmatic_best_params_file["Tp_sec"]))
 
 # -----------------------------------------
 # 3) Evaluation cutoff & grace period
 # -----------------------------------------
-cutoff = pl.datetime(2022, 6, 1)       # می‌تونی این رو عوض کنی
-grace_days = 60                      # مثلا 90 روز
+cutoff = pl.datetime(2022, 6, 1)      
+grace_days = 180                 
 grace_sec = grace_days * 86400
 
 rows = []
@@ -55,10 +59,10 @@ rows = []
 for persona, Ap in Ap_map.items():
     Tp_sec = Tp_map[persona]
 
-    # زمان شروع پنجره: [cutoff - Tp , cutoff]
+    # window start : [cutoff - Tp , cutoff]
     window_start = cutoff - pl.duration(seconds=int(Tp_sec))
 
-    # فقط ایونت‌های این پرسونا در پنجره‌ی زمانی
+    # only events in the window for this persona
     win = (
         elog
         .filter(pl.col("persona") == persona)
@@ -68,14 +72,14 @@ for persona, Ap in Ap_map.items():
         )
     )
 
-    # کاربرهایی که در این پنجره حداقل یک فعالیت داشتن
+    # Only users active in this window
     active_users = win.select("user_id").unique()
 
     if active_users.height == 0:
-        # هیچ کاربری در این پرسونا تو این بازه فعال نبوده
+        # too few users → skip
         continue
 
-    # weighted activity برای هر کاربر در پنجره
+    # weighted activity per user (sum of gain)
     wa = (
         win
         .group_by("user_id")
