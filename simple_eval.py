@@ -5,7 +5,7 @@ import numpy as np
 # -----------------------------------------
 # 1) Load core event log
 # -----------------------------------------
-elog = pl.read_parquet("core_eventlog_v1.parquet")
+elog = pl.read_parquet("core_eventlog_eval_v1.parquet")
 elog = elog.with_columns([
     pl.col("gain").cast(pl.Float64),
     pl.col("timestamp").cast(pl.Datetime),
@@ -40,15 +40,24 @@ grid = pd.read_csv("tp_ap_xgb_joint_search_sliding.csv")
 # Ap_map = dict(zip(best_params["persona"], best_params["Ap"]))
 # Tp_map = dict(zip(best_params["persona"], best_params["Tp_sec"]))
 
-pragmatic_best_params_file = pd.read_csv("best_params_sliding_median_f1.csv")
-Ap_map= dict(zip(pragmatic_best_params_file["persona"], pragmatic_best_params_file["Ap"]))
-Tp_map= dict(zip(pragmatic_best_params_file["persona"], pragmatic_best_params_file["Tp_sec"]))
+# pragmatic_best_params_file = pd.read_csv("best_params_sliding_median_f1.csv")
+# pragmatic_best_params_file = pd.read_csv("best_params_sliding_median_f1.csv")
+pragmatic_best_params_file = pd.read_csv("sliding_window_all_results.csv")
+
+#  Select best row per persona based on AUC
+pragmatic_best_params = (
+    pragmatic_best_params_file.sort_values(["persona", "median_f1"], ascending=[True, False])
+        .groupby("persona")
+        .head(1)
+)
+Ap_map= dict(zip(pragmatic_best_params["persona"], pragmatic_best_params["Ap"]))
+Tp_map= dict(zip(pragmatic_best_params["persona"], pragmatic_best_params["Tp_sec"]))
 
 # -----------------------------------------
 # 3) Evaluation cutoff & grace period
 # -----------------------------------------
-cutoff = pl.datetime(2022, 6, 1)      
-grace_days = 180                 
+cutoff = pl.datetime(2016, 3, 1)      
+grace_days = 180            
 grace_sec = grace_days * 86400
 
 rows = []
@@ -122,7 +131,7 @@ for persona, Ap in Ap_map.items():
     y_pred = pdf["pred_churn"].values
     # print(pdf.head(1))
     
-    # accuracy ساده: چند درصد پیش‌بینی درست بوده
+    
     accuracy = float((y_true == y_pred).mean())
     actual_rate = float(y_true.mean())
     pred_rate = float(y_pred.mean())
@@ -140,6 +149,7 @@ for persona, Ap in Ap_map.items():
     rows.append({
         "persona": int(persona),
         "Tp_sec": float(Tp_sec),
+        "Tp_days": int(float(Tp_sec) / 86400.0),
         "Ap": float(Ap),
         "num_users": int(len(y_true)),
         "actual_churn_rate": actual_rate,

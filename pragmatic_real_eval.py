@@ -8,7 +8,7 @@ print("SLIDING WINDOW EVALUATION - MEDIAN F1 SELECTION")
 print("=" * 80)
 
 # Load core event log
-elog = pl.read_parquet("core_eventlog_v1.parquet")
+elog = pl.read_parquet("core_eventlog_eval_v1.parquet")
 elog = elog.with_columns([
     pl.col("gain").cast(pl.Float64),
     pl.col("timestamp").cast(pl.Datetime),
@@ -53,7 +53,7 @@ print(f"\nEvaluation windows: {len(windows)}")
 for w in windows:
     print(f"  {w.strftime('%Y-%m-%d')}")
 
-grace_days = 60
+grace_days = 180
 grace_sec = grace_days * 86400
 
 # Store all evaluation results

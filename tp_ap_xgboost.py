@@ -11,7 +11,7 @@ from sklearn.metrics import precision_recall_curve
 # -------------------------------------------------------
 # Load core event log
 # -------------------------------------------------------
-elog = pl.read_parquet("core_eventlog_v1.parquet").with_columns([
+elog = pl.read_parquet("core_eventlog_train_v1.parquet").with_columns([
     pl.col("gain").cast(pl.Float64),
     pl.col("timestamp").cast(pl.Datetime),
 ])
@@ -131,7 +131,7 @@ for persona, p95_gap in p95_map.items():
             # ---------------------------------------------------
             model = XGBClassifier(
                 max_depth=3,
-                learning_rate=0.1,
+                learning_rate=0.05,
                 n_estimators=60,
                 subsample=0.9,
                 colsample_bytree=0.8,
@@ -153,8 +153,8 @@ for persona, p95_gap in p95_map.items():
             # Alternatively, set Ap to achieve n% recall
             precision, recall, thresholds = precision_recall_curve(y, pred_prob)
 
-            target_recall = 0.75
-            target_precision = 0.5
+            target_recall = 0.8
+            target_precision = 0.65
 
             # thresholds correspond to precision[1:], recall[1:]
             if thresholds.size == 0:
