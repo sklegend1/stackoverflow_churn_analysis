@@ -1,0 +1,4 @@
+Approach,Mean F1,Median F1,F1 Std,F1 Range
+Baseline (No Adjustment),0.536,0.5447,0.107,0.5276
+Year-Specific Adjustment,0.5374,0.548,0.1068,0.5406
+Era-Based Models,0.5369,0.5468,0.1066,0.536

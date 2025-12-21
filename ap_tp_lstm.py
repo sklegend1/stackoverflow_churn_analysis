@@ -195,7 +195,7 @@ def train_model(model, train_loader, val_loader, class_weights, epochs=30):
 
 results = []
 grace_period_sec = 180 * 86400
-lookback_days = 180
+lookback_days = 270
 
 windows = [(2019, 1), (2019, 7), (2020, 1), (2020, 7), (2021, 1), (2021, 7), (2022, 1)]
 

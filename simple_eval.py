@@ -15,15 +15,19 @@ elog = elog.with_columns([
 # 2) Load best Ap / Tp per persona
 #   
 # -----------------------------------------
-grid = pd.read_csv("tp_ap_xgb_joint_search_sliding.csv")
+# grid = pd.read_csv("tp_ap_xgb_joint_search_sliding.csv")
 
 #  Select best row per persona based on AUC
-# best_params = (
-#     grid.sort_values(["persona", "auc"], ascending=[True, False])
+# best_params_auc = (
+#     grid.sort_values(["persona", "f1"], ascending=[True, False])
 #         .groupby("persona")
 #         .head(1)
 # )
-
+# Ap_map= dict(zip(best_params_auc["persona"], best_params_auc["Ap"] ))
+# Tp_map= dict(zip(best_params_auc["persona"], best_params_auc["Tp_sec"] ))
+# F1_map= dict(zip(best_params_auc["persona"], best_params_auc["f1"] ))
+# date_map= dict(zip(best_params_auc["persona"], best_params_auc["cutoff_date"] ))
+# grace_map= dict(zip(best_params_auc["persona"], best_params_auc["grace_period_days"] ))
 # Compute F1 as harmonic mean of precision & recall
 # grid["F1"] = 2 * (grid["precision"] * grid["recall"]) / (
 #     (grid["precision"] + grid["recall"]).replace(0, np.nan)
@@ -42,32 +46,48 @@ grid = pd.read_csv("tp_ap_xgb_joint_search_sliding.csv")
 
 # pragmatic_best_params_file = pd.read_csv("best_params_sliding_median_f1.csv")
 # pragmatic_best_params_file = pd.read_csv("best_params_sliding_median_f1.csv")
-pragmatic_best_params_file = pd.read_csv("sliding_window_all_results.csv")
+# pragmatic_best_params_file = pd.read_csv("sliding_window_all_results.csv")
 
 #  Select best row per persona based on AUC
-pragmatic_best_params = (
-    pragmatic_best_params_file.sort_values(["persona", "median_f1"], ascending=[True, False])
-        .groupby("persona")
-        .head(1)
-)
-Ap_map= dict(zip(pragmatic_best_params["persona"], pragmatic_best_params["Ap"]))
-Tp_map= dict(zip(pragmatic_best_params["persona"], pragmatic_best_params["Tp_sec"]))
+# pragmatic_best_params = (
+#     pragmatic_best_params_file.sort_values(["persona", "median_f1"], ascending=[True, False])
+#         .groupby("persona")
+#         .head(1)
+# )
+# calibrated_params_file = pd.read_csv("calibration_evaluation_results.csv")
 
+# Ensure numeric comparison works even if the CSV has strings
+# calibrated_params_file["rate_ratio"] = pd.to_numeric(calibrated_params_file["rate_ratio"], errors="coerce")
+
+#  Select best row per persona based on rate_ratio close to 1
+# pragmatic_best_params = (
+#     calibrated_params_file.loc[calibrated_params_file["rate_ratio"].between(0.7, 1.5) & (calibrated_params_file["Ap"] > 0.1)]
+#         .sort_values(["persona", "f1"], ascending=[True, False])
+#         .groupby("persona")
+#         .head(1)
+# )
+# print(pragmatic_best_params)
+pragmatic_best_params = pd.read_csv("lstm_derived_ap_tp_2016.csv")
+Ap_map= dict(zip(pragmatic_best_params["persona"], pragmatic_best_params["Ap"]/1 ))
+Tp_map= dict(zip(pragmatic_best_params["persona"], pragmatic_best_params["Tp_sec"] ))
+# F1_map= dict(zip(pragmatic_best_params["persona"], pragmatic_best_params["median_f1"] ))
 # -----------------------------------------
 # 3) Evaluation cutoff & grace period
 # -----------------------------------------
-cutoff = pl.datetime(2016, 3, 1)      
-grace_days = 180            
+cutoff = pl.datetime(2016, 1, 1)      
+grace_days = 120 
 grace_sec = grace_days * 86400
+# difficulty_factor = dict(zip(pragmatic_best_params["persona"], pragmatic_best_params["avg_actual_churn_rate"]/pragmatic_best_params["avg_pred_churn_rate"] ))
 
 rows = []
 
 # -----------------------------------------
 # 4) Loop over personas
 # -----------------------------------------
-for persona, Ap in Ap_map.items():
+for persona, Ap  in Ap_map.items():
     Tp_sec = Tp_map[persona]
-
+    
+    # print(f"Evaluating persona={persona} with Ap={Ap:.4f}, Tp_sec={Tp_sec}, F1={F1_map[persona]:.4f}")
     # window start : [cutoff - Tp , cutoff]
     window_start = cutoff - pl.duration(seconds=int(Tp_sec))
 
@@ -88,16 +108,42 @@ for persona, Ap in Ap_map.items():
         # too few users → skip
         continue
 
-    # weighted activity per user (sum of gain)
-    wa = (
+    # Calculate WA_enhanced (same as calibration script)
+    mid_point = window_start + pl.duration(seconds=int(Tp_sec / 2))
+
+    features = (
         win
+        .with_columns([
+            (pl.col("timestamp") >= mid_point).alias("is_recent"),
+            ((cutoff - pl.col("timestamp")).dt.total_seconds() / 86400).alias("days_ago"),
+        ])
         .group_by("user_id")
-        .agg(pl.col("gain").sum().alias("WA"))
+        .agg([
+            pl.col("gain").sum().alias("total_gain"),
+            pl.col("gain").filter(pl.col("is_recent")).sum().alias("recent_gain"),
+            pl.col("gain").filter(~pl.col("is_recent")).sum().alias("old_gain"),
+            pl.col("days_ago").min().alias("days_since_last"),
+        ])
     )
+
+    features = features.with_columns([
+        ((pl.col("recent_gain") + 1.0) / (pl.col("old_gain") + 1.0)).alias("activity_trend"),
+        ((-pl.col("days_since_last") / 30.0).exp()).alias("recency_weight"),
+    ])
+
+    wa = features.with_columns([
+        (
+            pl.col("total_gain") 
+            #  * pl.col("activity_trend").clip(0.5, 2.0) 
+               * pl.col("recency_weight") # optionally include recency weight
+        ).alias("WA")
+    ]).select(["user_id", "WA"])
 
     # فقط همون کاربرهای active رو نگه داریم (در عمل همون‌ها هستن)
     wa = wa.join(active_users, on="user_id", how="inner")
-
+    Ap_old = Ap
+    # Ap = Ap_old * difficulty_factor.get(persona, 1.0)
+    # Ap = Ap  * ( wa["WA"].quantile(0.5) / Ap_old) 
     # پیش‌بینی: WA < Ap → churn = 1
     wa = wa.with_columns([
         (pl.col("WA") < Ap).cast(pl.Int8).alias("pred_churn")
@@ -109,7 +155,9 @@ for persona, Ap in Ap_map.items():
     after = (
         elog
         .filter(pl.col("persona") == persona)
-        .filter(pl.col("timestamp") > cutoff + pl.duration(seconds=grace_sec))
+        .filter((pl.col("timestamp") > cutoff + pl.duration(seconds=grace_sec)) 
+                & (pl.col("timestamp") < cutoff + pl.duration(seconds=grace_sec)+  pl.duration(seconds=365 * 86400)) 
+                                                                                   )
         .group_by("user_id")
         .agg(pl.len().alias("cnt_after"))
     )
@@ -117,7 +165,6 @@ for persona, Ap in Ap_map.items():
     eval_df = (
         wa.join(after, on="user_id", how="left")
           .with_columns([
-              # اگر هیچ فعالیتی بعد از cutoff+grace نداشته → churn واقعی = 1
               (pl.col("cnt_after").is_null()).cast(pl.Int8).alias("actual_churn")
           ])
     )
@@ -151,12 +198,15 @@ for persona, Ap in Ap_map.items():
         "Tp_sec": float(Tp_sec),
         "Tp_days": int(float(Tp_sec) / 86400.0),
         "Ap": float(Ap),
+        "Ap_old": float(Ap_old),
         "num_users": int(len(y_true)),
         "actual_churn_rate": actual_rate,
         "pred_churn_rate": pred_rate,
+        "pred/actual" : (pred_rate / actual_rate) if actual_rate > 0 else np.nan,
         "accuracy": accuracy,
         "precision": precision,
         "recall": recall,
+        "f1": 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0,
     })
 
 # -----------------------------------------
@@ -170,6 +220,6 @@ if len(rows) > 0:
     total_correct = sum(r["accuracy"] * r["num_users"] for r in rows)
     total_users = sum(r["num_users"] for r in rows)
     overall_acc = total_correct / total_users
-    print(f"Overall accuracy (weighted by users): {overall_acc:.4f}")
+    print(f"Median F1 across personas: {df_out['f1'].median():.4f}")
 else:
     print("No personas had active users in the evaluation window.")

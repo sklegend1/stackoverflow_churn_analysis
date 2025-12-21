@@ -8,3 +8,4 @@ xml.rar
 *.parquet
 filtered_users.sql
 churn_env
+last_claude_conv.md

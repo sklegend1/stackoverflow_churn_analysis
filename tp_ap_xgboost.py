@@ -42,21 +42,21 @@ p95_map = dict(zip(p95_df["persona"], p95_df["p95_gap_sec"]))
 # cutoff_years = list(range(2016, 2023))
 # cutoffs every 6 months (Jan 1 and Jul 1) from 2008-01-01 to 2022-07-01
 cutoff_years = []
-for y in range(2014, 2023):
-    cutoff_years.append((y, 1))
-    cutoff_years.append((y, 5))
-    cutoff_years.append((y, 8))
+for y in range(2016, 2021):
+    # cutoff_years.append((y, 1))
+     cutoff_years.append((y, 2))
+    # cutoff_years.append((y, 3))
 
 # Note: update the loop to unpack (year, month), e.g.:
 # for year, month in cutoff_years:
 #     cutoff = pl.datetime(year, month, 1)
 #     cutoff_str = f"{year:04d}-{month:02d}-01"
-grace_period_sec = 180 * 86400          # 180 days
+grace_period_sec = 90 * 86400          # 180 days
 
 # -------------------------------------------------------
 # alpha values to test (Tp = alpha * p95_gap_sec)
 # -------------------------------------------------------
-alpha_values = np.arange(1.5, 15.5, 2).tolist()  # [1, 5, 9, 13]
+alpha_values = np.arange(3, 10,1).tolist()  # [1, 5, 9, 13]
 
 rows = []
 
@@ -75,7 +75,7 @@ for persona, p95_gap in p95_map.items():
 
         for year,month in cutoff_years:
             # cutoff as literal datetime expression
-            cutoff = pl.datetime(year,month, 1)
+            cutoff = pl.datetime(year,1, 1)
 
             # training window: [cutoff - Tp, cutoff]
             window_start = cutoff - pl.duration(seconds=int(Tp_sec))
@@ -105,7 +105,7 @@ for persona, p95_gap in p95_map.items():
             # future activity after cutoff + grace period
             future = (
                 elog_p
-                .filter(pl.col("timestamp") > (cutoff + pl.duration(seconds=grace_period_sec)))
+                .filter((pl.col("timestamp") > (cutoff + pl.duration(seconds=grace_period_sec*month))) & (pl.col("timestamp") < (cutoff + pl.duration(seconds=366 * 86400)) + pl.duration(seconds=grace_period_sec*month) ))
                 .group_by("user_id")
                 .agg(pl.len().alias("cnt"))
             )
@@ -174,23 +174,32 @@ for persona, p95_gap in p95_map.items():
                     else:
                         best = np.argmax(recall[1:])
                         Ap = float(thresholds[best])
-            if Ap < 0.1 :
-                continue
+            
             # Binary prediction with Ap
             pred = (pred_prob >= Ap).astype(int)
-
+            pred_rate = float(pred.mean())
+            Ap_Calibrated = Ap * ((y.mean()  ) / pred_rate) if pred_rate > 0 else Ap
+            Ap = Ap_Calibrated
+            if Ap < 0.05 :
+                continue
+            #pred = (pred_prob >= Ap).astype(int)
             # Metrics
             auc = float(roc_auc_score(y, pred_prob))
             acc = float(accuracy_score(y, pred))
             prec = float(precision_score(y, pred, zero_division=0))
             rec = float(recall_score(y, pred, zero_division=0))
+            f1 = (2 * prec * rec / (prec + rec)) if (prec + rec) > 0 else 0.0
 
             # save row (cutoff in ISO format for readability)
-            cutoff_str = f"{year:04d}-{month}-01"
+            cutoff_str = f"{year:04d}-{'01'}-01"
+            if Tp_sec > (86400 * 270) or Tp_sec < (86400 * 60):
+                # skip Tp > 1 year
+                continue
 
             rows.append({
                 "persona": int(persona),
                 "cutoff_date": cutoff_str,
+                "grace_period_days": (grace_period_sec * month) // 86400,
                 "alpha": float(alpha),
                 "Tp_sec": Tp_sec,
                 "p95_gap_sec": float(p95_gap),
@@ -202,6 +211,7 @@ for persona, p95_gap in p95_map.items():
                 "precision": prec,
                 "recall": rec,
                 "auc": auc,
+                "f1": f1
             })
             print(f"Done persona={persona} year={year} alpha={alpha}")
 
