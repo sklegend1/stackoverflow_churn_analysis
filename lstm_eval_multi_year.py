@@ -263,12 +263,12 @@ for EVAL_YEAR in EVAL_YEARS:
 
 # Overall comparison
 print("\n" + "=" * 80)
-print("COMPARISON: 2016 vs 2021")
+print("COMPARISON: 2016 vs 2023")
 print("=" * 80)
 
 df_all = pd.DataFrame(all_year_results)
 
-for year in [2016, 2021]:
+for year in [2016, 2023]:
     df_yr = df_all[df_all['year'] == year]
     print(f"\n{year}:")
     print(f"  Median F1: {df_yr['f1'].median():.4f}")
@@ -276,8 +276,8 @@ for year in [2016, 2021]:
     print(f"  Stability (std): {df_yr['f1'].std():.4f}")
 
 # Save results
-df_all.to_csv("lstm_eval_2016_to_2023.csv", index=False)
-print(f"\n✓ Results saved to: lstm_eval_2016_to_2023.csv")
+df_all.to_csv("lstm_eval_2016_to_2023_full_features.csv", index=False)
+print(f"\n✓ Results saved to: lstm_eval_2016_to_2023_full_features.csv")
 
 print("\n" + "=" * 80)
 print("EVALUATION COMPLETE")

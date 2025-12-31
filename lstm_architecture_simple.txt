@@ -1,0 +1,31 @@
+
+LSTM TEMPORAL MODEL - SIMPLIFIED VIEW
+═════════════════════════════════════
+
+Inputs (3 branches)
+├─ Event Sequence [batch, 50, 2]
+├─ Global Features [batch, 4]
+└─ Persona Features [batch, 10]
+   ↓
+Persona Embedding [batch, 32]
+   ↓
+LSTM [batch, 50, 128] → Extract h_n[-1] [batch, 128]
+   ↓
+Concatenate [batch, 164] (128 + 4 + 32)
+   ↓
+FC1 [batch, 256] + ReLU + Dropout(0.3)
+   ↓
+FC2 [batch, 128] + ReLU + Dropout(0.2)
+   ↓
+┌──────────────┬──────────────┬──────────────┐
+│ Churn Head   │  Ap Head     │  Tp Head     │
+│ FC [64]      │  FC [64]     │  FC [64]     │
+│ Out [1]      │  Out [1]     │  Out [1]     │
+│ Sigmoid      │  Sigmoid     │  ReLU        │
+│ 🎯 [0,1]     │ 🎯 [0,1]     │ 🎯 [0,∞)     │
+│ BCE×2.0      │ MSE×1.0      │ MSE×0.1      │
+└──────────────┴──────────────┴──────────────┘
+                     ↓
+              Combined Loss
+                     ↓
+           Adam Optimizer (LR=0.001)

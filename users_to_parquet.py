@@ -11,10 +11,10 @@ MYSQL_PORT = 3307
 MYSQL_USER = "root"
 MYSQL_PASSWORD = "rootpass"
 MYSQL_DATABASE = "xml_db"
-MYSQL_TABLE = "filtered_users"  # change if your table name is different
+MYSQL_TABLE = "users"  # change if your table name is different
 
-PARQUET_DIR = "filtered_users_parquet"
-SINGLE_FILE_PATH = "filtered_users.parquet"
+PARQUET_DIR = "users_parquet"
+SINGLE_FILE_PATH = "users.parquet"
 
 os.makedirs(PARQUET_DIR, exist_ok=True)
 
@@ -52,15 +52,15 @@ SELECT * FROM {MYSQL_TABLE} LIMIT 1;
 
 print("Fetching min and max id...")
 #min_id, max_id = con.execute(min_max_query).fetchone()
-min_id = 9
-max_id = 21895547
+min_id = -1017
+max_id = 23923315
 ten_result = con.execute(ten_rows).fetchall()
 print(ten_result)
 print(f"min_id={min_id}, max_id={max_id}")
 
-CHUNK_SIZE = 22_000_000  # adjust based on your table size and laptop limits
+CHUNK_SIZE = 4_000_000  # adjust based on your table size and laptop limits
 
-current_start = 9
+current_start = -1017
 part_index = 0
 
 while current_start <= max_id:

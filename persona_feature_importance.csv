@@ -1,0 +1,74 @@
+feature,importance
+region_South Asia,0.20207515
+region_Europe,0.17109483
+region_North America,0.09170242
+region_Unknown,0.048642553
+region_East Asia,0.03574651
+region_South America,0.03334393
+region_Western Asia,0.028775122
+region_North Africa,0.020890914
+region_Africa,0.020283423
+action_2,0.020019284
+region_Oceania,0.0147894025
+count_answers,0.014698108
+post_type_2,0.013811132
+count_answers_log,0.013447166
+count_comments,0.0106347855
+count_comments_log,0.01033692
+downvotes,0.009268474
+action_70,0.008341992
+downvotes_log,0.008249996
+total_events,0.008193165
+total_events_log,0.008022617
+reputation,0.0068675154
+downvote_ratio,0.0061706863
+reputation_log,0.0061270692
+count_questions_log,0.0058390885
+action_1,0.005748238
+count_questions,0.0055155572
+total_duration,0.005372954
+action_30,0.005138037
+action_43,0.0050376123
+post_type_4,0.005014832
+post_type_1,0.004940146
+action_44,0.004904859
+action_17,0.004837916
+action_18,0.0048301895
+comments_per_post,0.004769346
+action_31,0.004737002
+post_type_5,0.004719766
+action_51,0.004714892
+post_type_6,0.0046471646
+individualistic_ratio,0.0046323035
+action_33,0.004578492
+action_50,0.0045535276
+views_log,0.0045450875
+action_16,0.004529754
+views,0.0045155426
+answer_question_ratio,0.0044640386
+action_32,0.00444919
+count_posthistory,0.0044490024
+collectivistic_ratio,0.0044364943
+action_14,0.0044185463
+upvotes,0.004416768
+action_40,0.004341785
+reputation_per_answer,0.0043307845
+action_15,0.004294203
+reputation_per_post,0.004193822
+action_13,0.004192151
+activity_duration_months,0.0041778046
+upvotes_log,0.00414895
+edits_per_post,0.004104502
+activity_intensity,0.00408123
+upvote_ratio,0.004045796
+views_per_post,0.0040450413
+aboutme_length,0.0039881123
+action_59,0.003766307
+action_55,0.0
+action_58,0.0
+action_52,0.0
+action_54,0.0
+action_35,0.0
+action_34,0.0
+action_46,0.0
+post_type_3,0.0

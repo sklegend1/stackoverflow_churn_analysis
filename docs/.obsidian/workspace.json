@@ -1,0 +1,196 @@
+{
+  "main": {
+    "id": "9deebac95d6e9075",
+    "type": "split",
+    "children": [
+      {
+        "id": "89542567aa1e905e",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "b95dfdc84b01d7f6",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "فصل_۱_مقدمه_و_تعریف_مسئله.md",
+                "mode": "preview",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "فصل_۱_مقدمه_و_تعریف_مسئله"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "b6bf813c2fc192cd",
+    "type": "split",
+    "children": [
+      {
+        "id": "5127323c1174e46f",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "c69da7e796b1c588",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "9df7c9d8e4f5eac5",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "e13422c41c96e763",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "b8e146b71e83a80c",
+    "type": "split",
+    "children": [
+      {
+        "id": "191d691dfa1be3a9",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "616cebb69b6b96de",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "فصل_۱_مقدمه_و_تعریف_مسئله.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for فصل_۱_مقدمه_و_تعریف_مسئله"
+            }
+          },
+          {
+            "id": "4727ceb742cb521f",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "فصل_۱_مقدمه_و_تعریف_مسئله.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from فصل_۱_مقدمه_و_تعریف_مسئله"
+            }
+          },
+          {
+            "id": "e0b2d7b5f0e2eae0",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "1fe500bc85150ef8",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "022ea5e70fca02ab",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "فصل_۱_مقدمه_و_تعریف_مسئله.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of فصل_۱_مقدمه_و_تعریف_مسئله"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "b95dfdc84b01d7f6",
+  "lastOpenFiles": [
+    "فصل_۲_مهندسی_داده_و_Event_Log.md",
+    "فصل_۳_سیستم_تفسیری_Rule_based.md",
+    "فصل_۴_Temporal_Drift_و_بهبودها.md",
+    "فصل_۱_مقدمه_و_تعریف_مسئله.pdf",
+    "فصل_۱_مقدمه_و_تعریف_مسئله.md",
+    "فصل_۵_مدل_LSTM.md",
+    "فصل_۶_بحث_و_نتیجه_گیری.md"
+  ]
+}

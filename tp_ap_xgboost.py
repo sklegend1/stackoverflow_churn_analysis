@@ -40,7 +40,7 @@ p95_map = dict(zip(p95_df["persona"], p95_df["p95_gap_sec"]))
 # -------------------------------------------------------
 
 # cutoff_years = list(range(2016, 2023))
-# cutoffs every 6 months (Jan 1 and Jul 1) from 2008-01-01 to 2022-07-01
+
 cutoff_years = []
 for y in range(2016, 2021):
     # cutoff_years.append((y, 1))
@@ -73,7 +73,7 @@ for persona, p95_gap in p95_map.items():
     for alpha in alpha_values:
         Tp_sec = float(alpha * p95_gap)
 
-        for year,month in cutoff_years:
+        for year,grace_coef in cutoff_years:
             # cutoff as literal datetime expression
             cutoff = pl.datetime(year,1, 1)
 
@@ -105,7 +105,7 @@ for persona, p95_gap in p95_map.items():
             # future activity after cutoff + grace period
             future = (
                 elog_p
-                .filter((pl.col("timestamp") > (cutoff + pl.duration(seconds=grace_period_sec*month))) & (pl.col("timestamp") < (cutoff + pl.duration(seconds=366 * 86400)) + pl.duration(seconds=grace_period_sec*month) ))
+                .filter((pl.col("timestamp") > (cutoff + pl.duration(seconds=grace_period_sec*grace_coef))) & (pl.col("timestamp") < (cutoff + pl.duration(seconds=366 * 86400)) + pl.duration(seconds=grace_period_sec*grace_coef) ))
                 .group_by("user_id")
                 .agg(pl.len().alias("cnt"))
             )
@@ -199,7 +199,7 @@ for persona, p95_gap in p95_map.items():
             rows.append({
                 "persona": int(persona),
                 "cutoff_date": cutoff_str,
-                "grace_period_days": (grace_period_sec * month) // 86400,
+                "grace_period_days": (grace_period_sec * grace_coef) // 86400,
                 "alpha": float(alpha),
                 "Tp_sec": Tp_sec,
                 "p95_gap_sec": float(p95_gap),

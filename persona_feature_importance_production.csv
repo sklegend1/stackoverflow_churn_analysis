@@ -1,0 +1,26 @@
+feature,importance
+region_South Asia,0.20664394
+region_Europe,0.17896354
+region_North America,0.09224229
+region_Unknown,0.051658507
+region_East Asia,0.037135392
+region_South America,0.033691496
+region_Western Asia,0.029242937
+region_Africa,0.02659375
+region_North Africa,0.023509
+action_70,0.017739074
+count_answers,0.016780965
+region_Oceania,0.014558835
+count_answers_log,0.013758668
+count_comments_log,0.011591721
+count_comments,0.011538076
+action_2,0.010013412
+downvotes,0.0094782
+downvotes_log,0.009474643
+total_events,0.008565561
+reputation_log,0.008542037
+total_events_log,0.008097983
+reputation,0.0073152347
+count_questions_log,0.005967639
+action_1,0.005927631
+action_31,0.0057995273

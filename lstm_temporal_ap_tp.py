@@ -135,6 +135,14 @@ for persona_id in range(20):
         1.0 if stats.get('H', 0) > 0 else 0.0,
         1.0 if stats.get('C', 0) > 0 else 0.0,
         1.0 if stats.get('T', 0) > 0 else 0.0,
+        1.0 if stats.get('I', 0) > 0 else 0.0,
+        1.0 if stats.get('SPECIALIST', 0) > 0 else 0.0,
+        # aboutme length average
+        np.log1p(stats.get('aboutme_length_average', 0)) / 100,
+        # comment sentiment average
+        stats.get('comment_sentiment_average', 0) ,
+        # profile views average
+        np.log1p(stats.get('profile_views_average', 0)) / 1000
     ]
 
     persona_features.append(features)

@@ -1,0 +1,159 @@
+// Temporal LSTM for Ap/Tp Prediction
+digraph LSTM_Temporal_Model {
+	nodesep=0.5 rankdir=TB ranksep=0.8 splines=ortho
+	node [fontname=Arial fontsize=10 shape=box style="rounded,filled"]
+	edge [color="#666666" fontname=Arial fontsize=9]
+	subgraph cluster_input {
+		color=blue fontname="Arial Bold" fontsize=12 label="INPUT LAYER" style=dashed
+		seq_input [label="Event Sequence
+[batch, 50, 2]
+━━━━━━━━━━
+Gain values
+Time deltas" fillcolor="#E3F2FD" shape=box]
+		global_input [label="Global Features
+[batch, 4]
+━━━━━━━━━━
+Days since last
+Era
+Month
+Year" fillcolor="#E3F2FD" shape=box]
+		persona_input [label="Persona Features
+[batch, 10]
+━━━━━━━━━━
+Reputation
+Upvotes
+Answers/Questions
+Duration
+Collectivistic
+H/C/T flags" fillcolor="#E3F2FD" shape=box]
+	}
+	subgraph cluster_embed {
+		color=green fontname="Arial Bold" fontsize=12 label="EMBEDDING LAYER" style=dashed
+		persona_embed [label="Persona Embedding
+[batch, 32]
+━━━━━━━━━━
+Linear(10 → 32)
++ ReLU" fillcolor="#C8E6C9" shape=box]
+	}
+	subgraph cluster_lstm {
+		color=orange fontname="Arial Bold" fontsize=12 label="SEQUENCE PROCESSING" style=dashed
+		lstm [label="LSTM Layer
+[batch, 50, 128]
+━━━━━━━━━━
+Input size: 2
+Hidden size: 128
+Num layers: 2
+Dropout: 0.2
+━━━━━━━━━━
+Bidirectional: No" fillcolor="#FFF9C4" shape=box]
+		lstm_hidden [label="Hidden State
+[batch, 128]
+━━━━━━━━━━
+Last LSTM output" fillcolor="#FFF9C4" shape=box]
+	}
+	concat [label="Concatenate
+[batch, 164]
+━━━━━━━━━━
+LSTM (128)
++ Global (4)
++ Persona (32)" fillcolor="#FFE0B2" shape=box style="rounded,filled"]
+	subgraph cluster_shared {
+		color=red fontname="Arial Bold" fontsize=12 label="SHARED PROCESSING" style=dashed
+		fc1 [label="FC Layer 1
+[batch, 256]
+━━━━━━━━━━
+Linear(164 → 256)
++ ReLU
++ Dropout(0.3)" fillcolor="#FFCDD2" shape=box]
+		fc2 [label="FC Layer 2
+[batch, 128]
+━━━━━━━━━━
+Linear(256 → 128)
++ ReLU
++ Dropout(0.2)" fillcolor="#FFCDD2" shape=box]
+	}
+	subgraph cluster_churn {
+		color=purple fontname="Arial Bold" fontsize=12 label="CHURN HEAD" style=dashed
+		churn_fc1 [label="FC Layer
+[batch, 64]
+━━━━━━━━━━
+Linear(128 → 64)
++ ReLU" fillcolor="#E1BEE7" shape=box]
+		churn_fc2 [label="Output Layer
+[batch, 1]
+━━━━━━━━━━
+Linear(64 → 1)
++ Sigmoid" fillcolor="#CE93D8" shape=box]
+		churn_out [label="Churn Probability
+━━━━━━━━━━
+Range: [0, 1]" fillcolor="#BA68C8" shape=ellipse style=filled]
+	}
+	subgraph cluster_ap {
+		color=purple fontname="Arial Bold" fontsize=12 label="AP THRESHOLD HEAD" style=dashed
+		ap_fc1 [label="FC Layer
+[batch, 64]
+━━━━━━━━━━
+Linear(128 → 64)
++ ReLU" fillcolor="#E1BEE7" shape=box]
+		ap_fc2 [label="Output Layer
+[batch, 1]
+━━━━━━━━━━
+Linear(64 → 1)
++ Sigmoid" fillcolor="#CE93D8" shape=box]
+		ap_out [label="Ap Threshold
+━━━━━━━━━━
+Range: [0, 1]" fillcolor="#BA68C8" shape=ellipse style=filled]
+	}
+	subgraph cluster_tp {
+		color=purple fontname="Arial Bold" fontsize=12 label="TP WINDOW HEAD" style=dashed
+		tp_fc1 [label="FC Layer
+[batch, 64]
+━━━━━━━━━━
+Linear(128 → 64)
++ ReLU" fillcolor="#E1BEE7" shape=box]
+		tp_fc2 [label="Output Layer
+[batch, 1]
+━━━━━━━━━━
+Linear(64 → 1)
++ ReLU" fillcolor="#CE93D8" shape=box]
+		tp_out [label="Tp Window (days)
+━━━━━━━━━━
+Range: [0, ∞)" fillcolor="#BA68C8" shape=ellipse style=filled]
+	}
+	subgraph cluster_loss {
+		color=black fontname="Arial Bold" fontsize=12 label="LOSS FUNCTIONS" style=dashed
+		loss_churn [label="BCE Loss
+Weight: 2.0" fillcolor="#CFD8DC" shape=box]
+		loss_ap [label="MSE Loss
+Weight: 1.0" fillcolor="#CFD8DC" shape=box]
+		loss_tp [label="MSE Loss
+Weight: 0.1" fillcolor="#CFD8DC" shape=box]
+		loss_total [label="Combined Loss
+━━━━━━━━━━
+2.0×Churn + Ap + 0.1×Tp" fillcolor="#B0BEC5" shape=box style="rounded,filled"]
+	}
+	seq_input -> lstm [label="50 timesteps"]
+	lstm -> lstm_hidden [label="extract last
+hidden state"]
+	persona_input -> persona_embed [label="10D"]
+	global_input -> concat [label="4D"]
+	lstm_hidden -> concat [label="128D"]
+	persona_embed -> concat [label="32D"]
+	concat -> fc1 [label="164D"]
+	fc1 -> fc2 [label="256D"]
+	fc2 -> churn_fc1 [label="128D"]
+	churn_fc1 -> churn_fc2 [label="64D"]
+	churn_fc2 -> churn_out [label="1D"]
+	fc2 -> ap_fc1 [label="128D"]
+	ap_fc1 -> ap_fc2 [label="64D"]
+	ap_fc2 -> ap_out [label="1D"]
+	fc2 -> tp_fc1 [label="128D"]
+	tp_fc1 -> tp_fc2 [label="64D"]
+	tp_fc2 -> tp_out [label="1D"]
+	churn_out -> loss_churn [color=red style=dashed]
+	ap_out -> loss_ap [color=red style=dashed]
+	tp_out -> loss_tp [color=red style=dashed]
+	loss_churn -> loss_total [color=red style=dashed]
+	loss_ap -> loss_total [color=red style=dashed]
+	loss_tp -> loss_total [color=red style=dashed]
+}

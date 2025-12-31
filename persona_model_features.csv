@@ -1,0 +1,55 @@
+feature
+reputation
+upvotes
+downvotes
+views
+aboutme_length
+total_duration
+total_events
+count_questions
+count_answers
+count_comments
+count_posthistory
+collectivistic_ratio
+individualistic_ratio
+activity_intensity
+comments_per_post
+edits_per_post
+reputation_per_post
+total_duration_months
+action_1
+action_2
+action_13
+action_14
+action_15
+action_16
+action_17
+action_18
+action_30
+action_31
+action_32
+action_33
+action_34
+action_35
+action_40
+action_43
+action_44
+action_46
+action_50
+action_51
+action_52
+action_54
+action_55
+action_58
+action_59
+action_70
+region_Africa
+region_East Asia
+region_Europe
+region_North Africa
+region_North America
+region_Oceania
+region_South America
+region_South Asia
+region_Unknown
+region_Western Asia
