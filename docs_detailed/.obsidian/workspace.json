@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "فصل_۶_جمع_بندی_و_نتیجه_گیری.md",
-                "mode": "preview",
+                "file": "WORKFLOW.md",
+                "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "فصل_۶_جمع_بندی_و_نتیجه_گیری"
+              "title": "WORKFLOW"
             }
           }
         ]
@@ -185,6 +185,7 @@
   },
   "active": "025326966cfa39bb",
   "lastOpenFiles": [
+    "pdfs/WORKFLOW.pdf",
     "pdfs/فصل_۶_جمع_بندی_و_نتیجه_گیری.pdf",
     "فصل_۲_مهندسی_داده_و_Event_Log.md",
     "pdfs/فصل_۲_مهندسی_داده_و_Event_Log.pdf",

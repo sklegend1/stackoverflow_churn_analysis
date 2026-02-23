@@ -70,14 +70,14 @@ elog = elog.with_columns([
 #         .head(1)
 # )
 # print(pragmatic_best_params)
-pragmatic_best_params = pd.read_csv("../../results/lstm_derived_ap_tp_2016.csv")
+pragmatic_best_params = pd.read_csv("../../results/best_params/tp_ap_xgb_joint_search_sliding.csv")
 Ap_map= dict(zip(pragmatic_best_params["persona"], pragmatic_best_params["Ap"]/1 ))
 Tp_map= dict(zip(pragmatic_best_params["persona"], pragmatic_best_params["Tp_sec"] ))
 # F1_map= dict(zip(pragmatic_best_params["persona"], pragmatic_best_params["median_f1"] ))
 # -----------------------------------------
 # 3) Evaluation cutoff & grace period
 # -----------------------------------------
-cutoff = pl.datetime(2023, 1, 1)      
+cutoff = pl.datetime(2020, 1, 1)      
 grace_days = 120 
 grace_sec = grace_days * 86400
 # difficulty_factor = dict(zip(pragmatic_best_params["persona"], pragmatic_best_params["avg_actual_churn_rate"]/pragmatic_best_params["avg_pred_churn_rate"] ))
@@ -142,7 +142,7 @@ for persona, Ap  in Ap_map.items():
         ).alias("WA")
     ]).select(["user_id", "WA"])
 
-    # فقط همون کاربرهای active رو نگه داریم (در عمل همون‌ها هستن)
+    # Only keep active users in the evaluation window
     wa = wa.join(active_users, on="user_id", how="inner")
     Ap_old = Ap
     # Ap = Ap_old * difficulty_factor.get(persona, 1.0)

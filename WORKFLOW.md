@@ -2,66 +2,68 @@
 
 این فایل مراحل اجرای پروژه را برای رویکردهای مختلف توضیح می‌دهد. برای سهولت کار، می‌توانید از اسکریپت خودکار `run_pipeline.py` استفاده کنید.
 
-## روش اجرای سریع (پیشنهادی)
+## پیش‌نیازها
 
-در پوشه اصلی پروژه، دستور زیر را اجرا کنید:
-
+**۱. نصب نیازمندی‌ها:**
+قبل از هر کاری، لطفاً کتابخانه‌های مورد نیاز پایتون را نصب کنید:
 ```bash
-python run_pipeline.py
+pip install -r requirements.txt
 ```
 
-سپس از منوی نمایش داده شده، گزینه مورد نظر خود را انتخاب کنید (مثلاً گزینه 1 برای اجرای کامل پایپ‌لاین XGBoost).
+**۲. داده‌های اولیه:**
+قبل از اجرای هر پایپ‌لاین، مطمئن شوید که فایل‌های داده خام پردازش شده‌اند. اگر اولین بار است که پروژه را اجرا می‌کنید، ابتدا **پایپ‌لاین ۳ (Data Engineering)** را اجرا کنید تا `eventlog_v2.parquet` ساخته شود.
 
 ---
 
-## مراحل اجرای دستی (Manual Execution)
-
-اگر می‌خواهید اسکریپت‌ها را به صورت جداگانه اجرا کنید، ترتیب زیر را رعایت کنید:
-
-### 1. رویکرد XGBoost / Rule-Based
+## ۱. رویکرد XGBoost / Rule-Based
 
 این رویکرد برای مدل‌سازی بر اساس ویژگی‌های استخراج شده (Feature Engineering) است.
 
 1.  **ساخت ماتریس ویژگی‌ها (Feature Matrix):**
-    *   اسکریپت: `src/data_engineering/create_feature_matrix.py`
-    *   خروجی: `data/processed/feature_matrix.csv`
+    *   **اسکریپت:** `src/data_engineering/create_feature_matrix.py`
+    *   **ورودی:** `data/processed/eventlog_v2.parquet`
+    *   **خروجی:** `data/processed/feature_matrix.csv`
 
 2.  **ساخت لاگ رویداد هسته (Core Event Log):**
-    *   اسکریپت: `src/data_engineering/create_core_eventlog.py`
-    *   خروجی: `data/processed/core_eventlog.parquet`
+    *   **اسکریپت:** `src/data_engineering/create_core_eventlog.py` (یا `create_core_eventlog_splited.py` برای تولید داده‌های Train/Eval)
+    *   **خروجی:** `data/processed/core_eventlog_v1.parquet` (یا `train_v1`/`eval_v1`)
+    *   **توجه:** مدل `tp_ap_xgboost.py` به فایل `core_eventlog_train_v1.parquet` نیاز دارد که توسط نسخه `_splited` تولید می‌شود.
 
 3.  **اجرای مدل (Model Training & Prediction):**
-    *   اسکریپت: `src/models/xgboost/tp_ap_xgboost.py`
-    *   خروجی: `results/tp_ap_estimates.csv` (پیش‌بینی‌های مدل)
+    *   **اسکریپت:** `src/models/xgboost/tp_ap_xgboost.py`
+    *   **ورودی:** `data/processed/core_eventlog_train_v1.parquet`
+    *   **خروجی:** `results/tp_ap_estimates.csv` (پیش‌بینی‌های مدل)
 
 4.  **ارزیابی (Evaluation):**
-    *   اسکریپت: `src/evaluation/simple_eval.py`
-    *   خروجی: نمایش نتایج دقت (Accuracy, F1-Score) در ترمینال و ذخیره در `results/evaluations/`
+    *   **اسکریپت:** `src/evaluation/simple_eval.py`
+    *   **ورودی:** `results/tp_ap_estimates.csv`
+    *   **خروجی:** نتایج ارزیابی در پوشه `results/evaluations`
 
 ---
 
-### 2. رویکرد LSTM (Deep Learning)
+## ۲. رویکرد LSTM (Deep Learning)
 
 این رویکرد برای مدل‌سازی ترتیبی (Sequential) رفتار کاربران است.
 
 1.  **ساخت ماتریس ویژگی‌ها (Feature Matrix):**
-    *   اسکریپت: `src/data_engineering/create_feature_matrix.py`
+    *   **اسکریپت:** `src/data_engineering/create_feature_matrix.py`
 
 2.  **ساخت لاگ رویداد هسته (Core Event Log):**
-    *   اسکریپت: `src/data_engineering/create_core_eventlog.py`
+    *   **اسکریپت:** `src/data_engineering/create_core_eventlog.py` (توصیه: استفاده از نسخه `_splited` برای دیتاست Train)
 
 3.  **اجرای مدل LSTM Temporal:**
-    *   اسکریپت: `src/models/lstm/lstm_temporal_ap_tp.py`
-    *   خروجی: مدل‌های ذخیره شده در `checkpoints/` و نتایج در `results/`
+    *   **اسکریپت:** `src/models/lstm/lstm_temporal_ap_tp.py`
+    *   **ورودی:** `data/processed/core_eventlog_train_v1.parquet`
+    *   **خروجی:** مدل‌های ذخیره شده در `checkpoints/` و نتایج در `results/`
 
 4.  **ارزیابی چند ساله (Multi-Year Evaluation):**
-    *   اسکریپت: `src/evaluation/lstm_eval_multi_year.py`
+    *   **اسکریپت:** `src/evaluation/lstm_eval_multi_year.py`
+    *   **ورودی:** نتایج حاصل از مدل LSTM
 
 ---
 
-## ساختار پوشه‌ها
+## نکات فنی
 
-*   `src/`: کدهای اصلی برنامه
-*   `data/`: داده‌های ورودی و خروجی میانی
-*   `results/`: نتایج نهایی و نمودارها
-*   `docs/`: مستندات پروژه
+*   برای اجرای صحیح اسکریپت‌ها و جلوگیری از مشکلات مسیر فایل (Path Issues)، حتماً از `run_pipeline.py` استفاده کنید یا اسکریپت‌ها را در دایرکتوری خودشان اجرا نمایید.
+*   تمام فایل‌های داده در `data/processed` ذخیره می‌شوند.
+
