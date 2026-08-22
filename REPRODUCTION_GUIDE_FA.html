@@ -1,0 +1,959 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>راهنمای بازسازی سیستم پیش‌بینی ریزش کاربران</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #5b6472;
+      --brand: #0f6abf;
+      --brand-2: #084c8d;
+      --accent: #f59e0b;
+      --accent-soft: #fff3d7;
+      --ok: #1f8a5b;
+      --danger: #b42318;
+      --border: #dde4ee;
+      --shadow: 0 18px 50px rgba(17, 24, 39, 0.10);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Tahoma, "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top right, rgba(15, 106, 191, 0.12), transparent 30%),
+        radial-gradient(circle at left top, rgba(245, 158, 11, 0.10), transparent 25%),
+        var(--bg);
+      line-height: 1.9;
+    }
+
+    .shell {
+      max-width: 1260px;
+      margin: 0 auto;
+      padding: 28px 18px 64px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #0f172a 0%, #114a8b 55%, #1976d2 100%);
+      color: white;
+      padding: 34px 30px;
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.16;
+      background: white;
+    }
+
+    .hero::before {
+      width: 260px;
+      height: 260px;
+      top: -120px;
+      left: -80px;
+    }
+
+    .hero::after {
+      width: 180px;
+      height: 180px;
+      bottom: -90px;
+      right: -40px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 3vw, 3rem);
+      line-height: 1.25;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 900px;
+      color: rgba(255, 255, 255, 0.92);
+      position: relative;
+      z-index: 1;
+      font-size: 1.03rem;
+    }
+
+    .hero .meta {
+      margin-top: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      font-size: 0.95rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      gap: 22px;
+      margin-top: 22px;
+      align-items: start;
+    }
+
+    .toc,
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .toc {
+      position: sticky;
+      top: 18px;
+      padding: 20px 18px;
+    }
+
+    .toc h2,
+    .card h2,
+    .card h3 {
+      margin-top: 0;
+    }
+
+    .toc h2 {
+      font-size: 1.15rem;
+      margin-bottom: 14px;
+    }
+
+    .toc a {
+      display: block;
+      padding: 9px 10px;
+      border-radius: 12px;
+      color: var(--text);
+      text-decoration: none;
+      transition: background 0.2s, color 0.2s;
+      font-size: 0.98rem;
+    }
+
+    .toc a:hover {
+      background: #edf5ff;
+      color: var(--brand-2);
+    }
+
+    .content {
+      display: grid;
+      gap: 18px;
+    }
+
+    .card {
+      padding: 24px;
+    }
+
+    .section-title {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .section-title h2,
+    .section-title h3 {
+      margin: 0;
+      color: var(--brand-2);
+      line-height: 1.3;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #edf5ff;
+      color: var(--brand-2);
+      font-size: 0.86rem;
+      border: 1px solid #d5e6fa;
+    }
+
+    .lead {
+      font-size: 1.02rem;
+      color: var(--muted);
+      margin-top: 0;
+    }
+
+    .note,
+    .warning,
+    .success {
+      border-radius: 18px;
+      padding: 16px 18px;
+      border-right: 5px solid transparent;
+      margin: 16px 0;
+    }
+
+    .note {
+      background: #f8fbff;
+      border-color: var(--brand);
+    }
+
+    .warning {
+      background: #fffaf1;
+      border-color: var(--accent);
+    }
+
+    .success {
+      background: #f4fbf7;
+      border-color: var(--ok);
+    }
+
+    .warning strong,
+    .note strong,
+    .success strong {
+      display: inline-block;
+      margin-bottom: 4px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 6px;
+      overflow: hidden;
+      border-radius: 16px;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      vertical-align: top;
+      text-align: right;
+    }
+
+    th {
+      background: #f2f7fc;
+      color: var(--brand-2);
+      font-weight: 700;
+    }
+
+    tr:nth-child(even) td {
+      background: #fcfdff;
+    }
+
+    ul,
+    ol {
+      margin: 10px 0 10px 0;
+      padding-right: 22px;
+    }
+
+    code,
+    pre {
+      font-family: Consolas, "Courier New", monospace;
+      direction: ltr;
+    }
+
+    pre {
+      background: #0f172a;
+      color: #e5edf8;
+      padding: 16px 18px;
+      border-radius: 18px;
+      overflow: auto;
+      margin: 14px 0;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .mini-card {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      background: linear-gradient(180deg, #ffffff, #fbfdff);
+    }
+
+    .mini-card h4 {
+      margin: 0 0 8px;
+      color: var(--brand-2);
+    }
+
+    .timeline {
+      display: grid;
+      gap: 12px;
+    }
+
+    .step {
+      border-right: 4px solid var(--brand);
+      padding: 12px 16px 12px 14px;
+      background: #f9fbff;
+      border-radius: 14px;
+    }
+
+    .step strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--brand-2);
+    }
+
+    .footer {
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .small {
+      font-size: 0.94rem;
+      color: var(--muted);
+    }
+
+    .kbd {
+      display: inline-block;
+      padding: 2px 8px;
+      border: 1px solid #cdd8e6;
+      border-bottom-width: 2px;
+      border-radius: 8px;
+      background: #fff;
+      font-size: 0.92rem;
+      direction: ltr;
+    }
+
+    .formula {
+      font-size: 1.02rem;
+      background: #f8fbff;
+      border: 1px solid #dde8f8;
+      border-radius: 16px;
+      padding: 12px 14px;
+      margin: 12px 0;
+    }
+
+    .center {
+      text-align: center;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; }
+      .toc { position: static; }
+      .two-col { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .shell { padding: 14px 10px 40px; }
+      .hero { padding: 24px 18px; border-radius: 22px; }
+      .card { padding: 18px; }
+      table { display: block; overflow-x: auto; white-space: nowrap; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <h1>راهنمای بازسازی سیستم پیش‌بینی ریزش کاربران</h1>
+      <p>
+        این سند نسخه‌ای فارسی قابل‌ارائه و مرحله‌به‌مرحله از روش این پروژه است. هدف آن این نیست که فقط
+        بگوید «چه کردیم»، بلکه نشان بدهد چگونه همین چارچوب را روی یک دیتاست جدید، با مفاهیم مشابه ولی داده‌های
+        متفاوت، دوباره اجرا و پیاده‌سازی کنید.
+      </p>
+      <div class="meta">
+        <span class="pill">مبنای اصلی: رفتار کاربر، نه قرارداد</span>
+        <span class="pill">خروجی قابل تفسیر + مدل ترتیبی</span>
+        <!-- <span class="pill">مناسب برای ارائه به مشتری</span> -->
+      </div>
+    </section>
+
+    <div class="grid">
+      <aside class="toc">
+        <h2>فهرست</h2>
+        <a href="#overview">۱. نگاه کلی</a>
+        <a href="#requirements">۲. پیش‌نیازهای داده</a>
+        <a href="#segmentation">۳. بخش‌بندی کاربران</a>
+        <a href="#eventlog">۴. ساخت Event Log</a>
+        <a href="#core-actions">۵. تشخیص اکشن‌های هسته</a>
+        <a href="#tp">۶. محاسبه Tp</a>
+        <a href="#label">۷. تعریف برچسب ریزش</a>
+        <a href="#wa">۸. محاسبه WA</a>
+        <a href="#ap">۹. استخراج Ap و ارزیابی زمانی</a>
+        <a href="#drift">۱۰. تشخیص Drift</a>
+        <a href="#lstm">۱۱. مدل LSTM</a>
+        <a href="#validation">۱۲. اعتبارسنجی و استقرار</a>
+        <a href="#checklist">۱۳. چک‌لیست بازسازی روی دیتاست جدید</a>
+        <a href="#summary">۱۴. خلاصه اجرایی</a>
+      </aside>
+
+      <main class="content">
+        <section class="card" id="overview">
+          <div class="section-title">
+            <h2>۱. نگاه کلی</h2>
+            <span class="tag">برای شروع ارائه</span>
+          </div>
+          <p class="lead">
+            این پروژه یک سیستم پیش‌بینی ریزش بر پایه رفتار کاربران می‌سازد؛ یعنی به‌جای تکیه بر یک رویداد رسمی مثل
+            «لغو اشتراک»، از الگوی فعالیت واقعی کاربران نتیجه می‌گیرد که چه زمانی کاربر در آستانه ریزش است.
+          </p>
+          <div class="note">
+            <strong>ایده اصلی:</strong>
+            ابتدا ریزش را به‌صورت رفتاری تعریف می‌کنیم، بعد یک نسخه تفسیرپذیر از آن می‌سازیم، سپس برای مقابله با
+            تغییرات زمانیِ رفتار کاربران (Drift) مدل ترتیبی LSTM را به‌عنوان لایه پیشرفته‌تر اضافه می‌کنیم.
+          </div>
+
+          <div class="two-col">
+            <div class="mini-card">
+              <h4>چرا این روش مهم است؟</h4>
+              <p>
+                چون روی بسیاری از محصولات، «ریزش» یک رویداد صریح نیست. کاربر به‌تدریج کم‌فعال می‌شود. پس باید یک
+                تعریف عملیاتی و قابل‌دفاع برای ریزش بسازیم.
+              </p>
+            </div>
+            <div class="mini-card">
+              <h4>خروجی نهایی چه چیزی است؟</h4>
+              <p>
+                یک چارچوب که هم برای کارفرما قابل توضیح است و هم برای تیم فنی قابل بازسازی روی دیتاست جدید؛ با
+                مراحل واضح، ورودی/خروجی مشخص، و معیارهای ارزیابی قابل‌ردیابی.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" id="requirements">
+          <div class="section-title">
+            <h2>۲. پیش‌نیازهای داده</h2>
+            <span class="tag">اگر این‌ها را ندارید، ادامه ندهید</span>
+          </div>
+          <p class="lead">
+            این روش فقط زمانی قابل بازسازی است که داده شما سه ویژگی زیر را داشته باشد. اگر یکی از آن‌ها ناقص باشد،
+            باید ابتدا زیرساخت داده را اصلاح کنید.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>نیاز</th>
+                <th>چرا لازم است؟</th>
+                <th>اگر نباشد چه می‌شود؟</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Event log در سطح رویداد</strong><br />یعنی هر رکورد باید شامل شناسه کاربر، زمان و نوع رویداد باشد.</td>
+                <td>تمام منطق این پروژه بر پایه فاصله بین رویدادها و تغییرات رفتاری در طول زمان ساخته می‌شود.</td>
+                <td>اگر فقط شمارش ماهانه داشته باشید، دیگر نمی‌توان Tp یا مدل ترتیبی ساخت.</td>
+              </tr>
+              <tr>
+                <td><strong>حداقل ۳ تا ۴ سال تاریخچه</strong></td>
+                <td>برای ارزیابی چند نقطه زمانی و دیدن Drift به زمان کافی نیاز دارید.</td>
+                <td>مدل را برای یک بازه خاص بیش‌برازش می‌کنید و تصور می‌کنید خوب کار کرده است.</td>
+              </tr>
+              <tr>
+                <td><strong>برچسب‌های سگمنت/پرسونا که خودتان مالک آن هستید</strong></td>
+                <td>تمام آستانه‌ها و محاسبات این روش برای هر سگمنت جداگانه است.</td>
+                <td>اگر برچسب‌ها از مدل نامعلوم دیگر آمده باشند، بازسازی و نگهداری آن‌ها ریسک بالایی دارد.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="warning">
+            <strong>مهم‌ترین هشدار پروژه:</strong>
+            این پروژه نشان داد که ارث بردن برچسب‌های سگمنت از یک مدل قدیمیِ بدون مستندات، ریسک جدی است. در این
+            دیتاست، بازتولید سگمنت‌ها تنها حدود ۷.۴۷٪ توافق داشت؛ بنابراین برای دیتاست جدید باید سگمنت‌سازی را از
+            ابتدا طراحی، مستندسازی و نسخه‌بندی کنید.
+          </div>
+        </section>
+
+        <section class="card" id="segmentation">
+          <div class="section-title">
+            <h2>۳. بخش‌بندی کاربران</h2>
+            <span class="tag">Segment first</span>
+          </div>
+          <p>
+            در این روش، هیچ آستانه‌ای به‌صورت سراسری برای همه کاربران استفاده نمی‌شود. هر گروه رفتاری، آستانه و
+            پنجره زمانی مخصوص خود را دارد. این کار باعث می‌شود تفاوت بین کاربران فعال، کم‌فعال، متخصص، پرسشگر و
+            سایر الگوها حفظ شود.
+          </p>
+          <div class="note">
+            <strong>توصیه عملی برای دیتاست جدید:</strong>
+            اگر سگمنت‌ها را خودتان می‌سازید، مدل خوشه‌بندی، فهرست ویژگی‌ها و نسخه داده ورودی را ذخیره کنید تا بعداً
+            بتوانید کاربران جدید را نیز به‌صورت پایدار به همان سگمنت‌ها نسبت دهید.
+          </div>
+          <ul>
+            <li>اگر سگمنت‌های پایدار و قابل تکرار دارید، از آن‌ها استفاده کنید.</li>
+            <li>اگر ندارید، می‌توانید ابتدا یک سگمنت‌بندی ساده و قابل توضیح تعریف کنید.</li>
+            <li>اگر هم سگمنت‌سازی به‌نفع کسب‌وکار نیست، یک مدل جهانی ساده‌تر بسازید؛ اما آن را به‌عنوان baseline بشناسید.</li>
+          </ul>
+        </section>
+
+        <section class="card" id="eventlog">
+          <div class="section-title">
+            <h2>۴. ساخت Event Log</h2>
+            <span class="tag">زیرساخت اصلی</span>
+          </div>
+          <p class="lead">
+            اولین گام فنی، تبدیل داده خام به یک event log استاندارد است؛ یعنی جدولی که هر سطر آن یک رویداد را نشان
+            می‌دهد و بتوان از روی آن فاصله زمانی بین رویدادها را محاسبه کرد.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>ستون</th>
+                <th>توضیح</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="kbd">user_id</span></td>
+                <td>شناسه یکتای کاربر</td>
+              </tr>
+              <tr>
+                <td><span class="kbd">timestamp</span></td>
+                <td>زمان دقیق رویداد</td>
+              </tr>
+              <tr>
+                <td><span class="kbd">action_type_id</span></td>
+                <td>کد نوع رویداد</td>
+              </tr>
+              <tr>
+                <td><span class="kbd">segment</span></td>
+                <td>برچسب سگمنت/پرسونا</td>
+              </tr>
+              <tr>
+                <td><span class="kbd">gap_time_actions_seconds</span></td>
+                <td>فاصله زمانی با رویداد قبلی کاربر</td>
+              </tr>
+              <tr>
+                <td><span class="kbd">gap_time_actions_days</span></td>
+                <td>همان فاصله بر حسب روز</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="success">
+            <strong>نکته مهم طراحی داده:</strong>
+            همه چیز باید به ترتیب <span class="kbd">user_id</span> و <span class="kbd">timestamp</span> مرتب شود و
+            فاصله‌ها بعد از مرتب‌سازی محاسبه شوند؛ وگرنه gapها غلط می‌شوند و کل روش از پایه آسیب می‌بیند.
+          </div>
+
+          <div class="timeline">
+            <div class="step">
+              <strong>۱) تشخیص actor واقعی</strong>
+              در بعضی جدول‌ها، مالک یک رکورد با انجام‌دهنده واقعی رویداد فرق دارد. باید مشخص کنید «چه کسی عمل را انجام داده»
+              و نه صرفاً «چه چیزی متعلق به چه کسی بوده».
+            </div>
+            <div class="step">
+              <strong>۲) حذف رویدادهای بدون actor قابل‌اتکا</strong>
+              هر رویدادی که نتوانید به‌درستی به کاربر نسبت دهید، باید حذف شود؛ چون نویز است، نه سیگنال.
+            </div>
+            <div class="step">
+              <strong>۳) یکسان‌سازی فضای action_type</strong>
+              همه منبع‌های رویداد را وارد یک فضای کدگذاری یکتا کنید تا بعداً بتوانید بر روی آن‌ها محاسبه انجام دهید.
+            </div>
+            <div class="step">
+              <strong>۴) محاسبه gap برای هر کاربر</strong>
+              پس از مرتب‌سازی، فاصله بین رویدادها را در سطح هر کاربر محاسبه کنید. این فاصله، پایه ساخت Tp و مدل زمانی است.
+            </div>
+          </div>
+
+          <pre><code>df = df.sort(["user_id", "timestamp"])
+df = df.with_columns(
+    (pl.col("timestamp").diff().over("user_id") / 1_000_000)
+    .alias("gap_time_actions_seconds")
+)</code></pre>
+
+          <p class="small">
+            از نظر مقیاس، این پروژه با حدود ۴۰.۶ میلیون رویداد و بدون Spark اجرا شد. برای دیتاست‌های مشابه، استفاده از
+            Polars lazy scan و collect(streaming) توصیه می‌شود و تبدیل به pandas را فقط در مرزهای sklearn / XGBoost انجام دهید.
+          </p>
+        </section>
+
+        <section class="card" id="core-actions">
+          <div class="section-title">
+            <h2>۵. تشخیص اکشن‌های هسته</h2>
+            <span class="tag">Core actions</span>
+          </div>
+          <p>
+            همه فعالیت‌ها به یک اندازه نشانه‌ی درگیری کاربر با محصول نیستند. در این روش، برای هر سگمنت ابتدا اکشن‌های
+            مهم‌تر یا «هسته» استخراج می‌شوند و فقط همان‌ها وارد مرحله‌های بعدی می‌شوند. این مرحله در پیاده‌سازی پروژه با اسکریپت feature_importance_by_xgboost.py انجام می‌شود و خروجی آن فایل core_activity_per_persona_named.csv است.
+          </p>
+          <ol>
+            <li>از داده رویداد، یک feature matrix در سطح کاربر بسازید.</li>
+            <li>اسکریپت feature_importance_by_xgboost.py را اجرا کنید تا فایل core_activity_per_persona_named.csv ساخته شود.</li>
+            <li>برای هر سگمنت، یک مدل one-vs-rest آموزش دهید.</li>
+            <li>اهمیت ویژگی‌ها را با معیار Gain استخراج کنید.</li>
+            <li>به‌ازای هر سگمنت، top-K اکشن‌ها را به‌عنوان core activities نگه دارید.</li>
+            <li>event log را فقط به همین رویدادهای هسته‌ای محدود کنید.</li>
+          </ol>
+          <div class="warning">
+            <strong>اصطلاح Gain:</strong>
+            در این پروژه، Gain به معنی feature importance از XGBoost است؛ نه امتیاز اعتبار، نه reputation و نه هر
+            چیز دیگری. برای ارائه به 
+          </div>
+          <p>
+            در پیاده‌سازی فعلی، K برابر ۷ در نظر گرفته شده است. سپس gapها یک‌بار دیگر، این‌بار فقط روی رویدادهای هسته،
+            محاسبه می‌شوند.
+          </p>
+          <div class="note">
+            <strong>چرا این مرحله مهم است؟</strong>
+            چون Tp قرار نیست روی همه رویدادها ساخته شود؛ بلکه روی همان فعالیت‌هایی ساخته می‌شود که واقعاً نشان‌دهنده‌ی
+            درگیری معنادار کاربر هستند.
+          </div>
+        </section>
+
+        <section class="card" id="tp">
+          <div class="section-title">
+            <h2>۶. محاسبه Tp</h2>
+            <span class="tag">پنجره زمانی رفتاری</span>
+          </div>
+          <p>
+            Tp طول پنجره‌ای است که داخل آن فعالیت کاربر را اندازه می‌گیریم. به‌جای انتخاب یک عدد دلخواه، Tp از خود
+            داده استخراج می‌شود:
+          </p>
+          <div class="formula"><strong>Tp = α × p95(gap_time_key_actions)</strong></div>
+          <p>
+            یعنی ابتدا توزیع فاصله زمانی بین رویدادهای هسته‌ای را نگاه می‌کنیم، صدک ۹۵ آن را می‌گیریم، و سپس آن را
+            در یک ضریب α ضرب می‌کنیم.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>بازه</th>
+                <th>تفسیر</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>α</td>
+                <td>ضریبی که به‌صورت جست‌وجویی انتخاب می‌شود</td>
+              </tr>
+              <tr>
+                <td>Tp</td>
+                <td>پنجره نهایی فعالیت برای هر سگمنت</td>
+              </tr>
+              <tr>
+                <td>بازه معقول در این پروژه</td>
+                <td>حدود ۶۱ تا ۲۶۸ روز</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            اگر Tp برای یک سگمنت خیلی کوچک یا خیلی بزرگ شد، این نشانه‌ی غیرعادی بودن توزیع gap است و باید بررسی شود.
+          </p>
+          <div class="success">
+            <strong>چرا p95؟</strong>
+            چون نسبت به یک عدد گرد و قراردادی، دفاع‌پذیرتر است و با رفتار واقعی هر سگمنت سازگار می‌ماند.
+          </div>
+        </section>
+
+        <section class="card" id="label">
+          <div class="section-title">
+            <h2>۷. تعریف برچسب ریزش</h2>
+            <span class="tag">Labeling</span>
+          </div>
+          <p>
+            برچسب ریزش در این چارچوب، قراردادی و رفتاری تعریف می‌شود. اگر کاربر در یک بازه آینده بعد از دوره‌ی
+            grace هیچ فعالیتی نداشته باشد، churn=1 در نظر گرفته می‌شود.
+          </p>
+          <div class="formula"><strong>churn = 1</strong> اگر کاربر در بازه <span class="kbd">[cutoff + grace, cutoff + grace + horizon]</span> فعالیتی نداشته باشد.</div>
+          <table>
+            <thead>
+              <tr>
+                <th>پارامتر</th>
+                <th>توضیح</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="kbd">GRACE_DAYS</span></td>
+                <td>مدتی برای تحمل وقفه‌های کوتاه، تعطیلات یا نوسان موقتی فعالیت</td>
+              </tr>
+              <tr>
+                <td><span class="kbd">HORIZON</span></td>
+                <td>بازه‌ای که در آن بررسی می‌کنیم کاربر بازگشته یا نه</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="warning">
+            <strong>فیلتر eligibility را حذف نکنید:</strong>
+            فقط کاربرانی را ارزیابی کنید که حداقل یک رویداد هسته‌ای در بازه <span class="kbd">[cutoff − Tp, cutoff]</span>
+            دارند. اگر این فیلتر حذف شود، معیارها به‌صورت مصنوعی بهتر دیده می‌شوند.
+          </div>
+        </section>
+
+        <section class="card" id="wa">
+          <div class="section-title">
+            <h2>۸. محاسبه WA</h2>
+            <span class="tag">Weighted Activity</span>
+          </div>
+          <p>
+            WA خلاصه‌ای از فعالیت کاربر در پنجره Tp است. ابتدا یک نسخه ساده می‌سازیم و سپس آن را با نگاه زمانی
+            غنی‌تر می‌کنیم.
+          </p>
+          <pre><code># Baseline
+WA_simple = sum(gain for core events in [cutoff - Tp, cutoff])
+
+# Time-aware components
+activity_trend = clip((recent_gain + 1) / (old_gain + 1), 0.5, 2.0)
+recency_weight = exp(-days_since_last / 30)
+
+WA_trend    = WA_simple * activity_trend
+WA_recency  = WA_simple * recency_weight
+WA_enhanced = WA_simple * activity_trend * recency_weight</code></pre>
+          <p>
+            در داده این پروژه، <strong>WA_recency</strong> بهترین نسخه بود. اما فاصله‌ی نسخه‌ها خیلی زیاد نبود؛ یعنی
+            feature engineering به سقف خود نزدیک شده بود و باید برای عبور از drift به مدل دیگری رفت.
+          </p>
+          <div class="note">
+            <strong>برای دیتاست جدید:</strong>
+            همه چهار نسخه را روی داده خودتان ارزیابی کنید. ممکن است ترتیب برنده‌ها متفاوت باشد، اما اگر شکاف نسخه‌ها
+            کوچک است، احتمالاً اثر اصلی در خود Drift نهفته است.
+          </div>
+        </section>
+
+        <section class="card" id="ap">
+          <div class="section-title">
+            <h2>۹. استخراج Ap و ارزیابی زمانی</h2>
+            <span class="tag">Threshold + Sliding Cutoff</span>
+          </div>
+          <p>
+            Ap حد پایین فعالیت مؤثر است. دو مسیر رایج برای انتخاب آن وجود دارد: یا با sweep درصدی، یا با classifier و
+            precision-recall curve. در هر دو حالت، آن را جداگانه برای هر سگمنت و هر دوره زمانی تعیین کنید.
+          </p>
+          <div class="two-col">
+            <div class="mini-card">
+              <h4>روش ۱: Percentile sweep</h4>
+              <p>چند percentile از توزیع WA را امتحان کنید و نقطه‌ای را انتخاب کنید که بهترین F1 را می‌دهد.</p>
+            </div>
+            <div class="mini-card">
+              <h4>روش ۲: PR curve</h4>
+              <p>یک classifier روی WA آموزش دهید و threshold را از curve انتخاب کنید.</p>
+            </div>
+          </div>
+
+          <div class="success">
+            <strong>مهم‌ترین اصل این مرحله:</strong>
+            ارزیابی فقط با یک cutoff کافی نیست. باید cutoffs را در طول زمان بچرخانید، مثلاً از سال ۲۰۱۶ تا ۲۰۲۳،
+            و نتیجه را به‌صورت میانه و انحراف معیار گزارش کنید.
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>معیار</th>
+                <th>چرا مهم است؟</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Median F1</td>
+                <td>یک سال عجیب، کل نتیجه را خراب نمی‌کند.</td>
+              </tr>
+              <tr>
+                <td>Std</td>
+                <td>شدت drift را نشان می‌دهد.</td>
+              </tr>
+              <tr>
+                <td>rate_ratio</td>
+                <td>نسبت churn پیش‌بینی‌شده به churn واقعی؛ اگر فقط F1 را ببینید، over-prediction پنهان می‌ماند.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="card" id="drift">
+          <div class="section-title">
+            <h2>۱۰. تشخیص Drift</h2>
+            <span class="tag">ریشه‌ی مسئله</span>
+          </div>
+          <p>
+            اگر F1 در سال‌های مختلف بالا و پایین می‌شود، مشکل فقط «انتخاب آستانه» نیست؛ رفتار کاربران در طول زمان
+            تغییر کرده است. در این پروژه، over-prediction در سال‌های قدیمی‌تر شدیدتر بود و همین نشان می‌داد که رابطه‌ی
+            feature و label ثابت نمانده است.
+          </p>
+          <div class="warning">
+            <strong>نکته تحلیلی مهم:</strong>
+            Drift یعنی خود معنای فعالیت در طول زمان عوض شده است. بنابراین هر روش post-hoc که فرض کند فقط scale خروجی
+            مشکل دارد، معمولاً ناکافی است.
+          </div>
+          <p>
+            سه اقدام اصلاحی روی این پروژه امتحان شد: calibration، temperature scaling و year multipliers. هیچ‌کدام
+            به‌عنوان راه‌حل نهایی قانع‌کننده نبودند. نتیجه‌ی عملی این بود که باید از یک مدل time-blind ساده، به یک
+            مدل sequence-aware رفت.
+          </p>
+        </section>
+
+        <section class="card" id="lstm">
+          <div class="section-title">
+            <h2>۱۱. مدل LSTM</h2>
+            <span class="tag">مرحله‌ی پیشرفته</span>
+          </div>
+          <p>
+            وقتی Drift مشاهده می‌شود، دیگر نباید فقط فعالیت تجمیعی را نگاه کرد. باید توالی رویدادها، فاصله زمانی، و
+            متغیرهای زمینه‌ای را هم وارد مدل کرد. در این پروژه، LSTM برای همین هدف استفاده شد.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>ورودی</th>
+                <th>نقش</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="kbd">Event sequence</span></td>
+                <td>آخرین ۵۰ رویداد، هر کدام شامل gain و time delta</td>
+              </tr>
+              <tr>
+                <td><span class="kbd">Global features</span></td>
+                <td>ویژگی‌هایی مانند سال، ماه، era و recency</td>
+              </tr>
+              <tr>
+                <td><span class="kbd">Persona embedding</span></td>
+                <td>نمایش فشرده‌ی سگمنت برای یادگیری مشترک بین سگمنت‌ها</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="note">
+            <strong>فایده‌ی LSTM:</strong>
+            به‌جای اینکه تاریخچه را به یک عدد فشرده کنیم، خودِ توالی را به مدل می‌دهیم. این باعث می‌شود تغییر رژیم
+            زمانی برای مدل قابل یادگیری‌تر شود.
+          </div>
+
+          <pre><code>loss = 2.0 * BCE(churn_pred, churn_true)
+     + 1.0 * MSE(ap_pred,  ap_reference)
+     + 0.1 * MSE(tp_pred,  tp_reference)</code></pre>
+
+          <p>
+            در این طراحی، مدل تفسیرپذیر قبلی به‌عنوان teacher عمل می‌کند. یعنی Ap و Tp که در مرحله‌های قبل به‌دست
+            آمده‌اند، به‌عنوان supervisory signal به LSTM کمک می‌کنند.
+          </p>
+        </section>
+
+        <section class="card" id="validation">
+          <div class="section-title">
+            <h2>۱۲. اعتبارسنجی و استقرار</h2>
+            <!-- <span class="tag">آنچه  مهم است</span> -->
+          </div>
+          <p>
+            فقط ساخت مدل کافی نیست.  باید بدانید چه چیزی را در تولید نگه می‌دارید، چطور آن را نظارت می‌کنید، و
+            چگونه اگر رفتار کاربران دوباره عوض شد، سیستم را بازتنظیم می‌کنید.
+          </p>
+          <div class="two-col">
+            <div class="mini-card">
+              <h4>برای ارزیابی</h4>
+              <ul>
+                <li>هر سال را جداگانه بررسی کنید.</li>
+                <li>هر سگمنت را جداگانه بررسی کنید.</li>
+                <li>median، std و rate_ratio را با هم گزارش کنید.</li>
+              </ul>
+            </div>
+            <div class="mini-card">
+              <h4>برای استقرار</h4>
+              <ul>
+                <li>مدل تفسیرپذیر را برای توضیح و کنترل نگه دارید.</li>
+                <li>LSTM را برای پیش‌بینی اصلی استفاده کنید.</li>
+                <li>روی تغییرات drift به‌صورت دوره‌ای مانیتور داشته باشید.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="success">
+            <strong>پیشنهاد عملی برای rollout:</strong>
+            ابتدا shadow deployment، سپس A/B محدود، بعد rollout مرحله‌ای. در تمام این مراحل، rule-based model را به‌عنوان
+            fallback و explanation layer نگه دارید.
+          </div>
+        </section>
+
+        <section class="card" id="checklist">
+          <div class="section-title">
+            <h2>۱۳. چک‌لیست بازسازی روی دیتاست جدید</h2>
+            <span class="tag">نسخه‌ی اجرایی</span>
+          </div>
+          <ol>
+            <li>داده رویدادی در سطح event بسازید و مطمئن شوید actor واقعی هر رویداد معلوم است.</li>
+            <li>سگمنت‌ها را به‌صورت قابل نسخه‌بندی و قابل بازتولید تعریف کنید.</li>
+            <li>Event log را بسازید و gapها را محاسبه کنید.</li>
+            <li>ویژگی‌های کاربر را برای تشخیص core actions استخراج کنید.</li>
+            <li>feature importance را اجرا کنید و core_activity_per_persona_named.csv را بسازید.</li>
+            <li>core event log را بسازید و فقط رویدادهای مهم را نگه دارید.</li>
+            <li>Tp را از داده استخراج کنید، نه از حدس جلسه‌ای.</li>
+            <li>برچسب ریزش را با grace period تعریف کنید.</li>
+            <li>WA را در نسخه‌های مختلف محاسبه کنید و نسخه بهتر را انتخاب کنید.</li>
+            <li>Ap را برای هر سگمنت تعیین کنید و sliding cutoff انجام دهید.</li>
+            <li>Drift را تشخیص دهید؛ اگر لازم شد، مدل ترتیبی بسازید.</li>
+          </ol>
+          <div class="warning">
+            <strong>یک خطای رایج:</strong>
+            اگر همه این‌ها را فقط روی یک cutoff اجرا کنید، نتیجه ظاهراً خوب است اما در عمل پایدار نیست. این روش
+            حتماً باید چندساله و زمان‌محور ارزیابی شود.
+          </div>
+        </section>
+
+        <section class="card" id="summary">
+          <div class="section-title">
+            <h2>۱۴. خلاصه اجرایی</h2>
+            <span class="tag">برای اسلاید نهایی</span>
+          </div>
+          <div class="timeline">
+            <div class="step">
+              <strong>اول</strong>
+              ریزش را به‌صورت رفتاری تعریف کنید، چون در بسیاری از محصولات رویداد رسمی ریزش ندارید.
+            </div>
+            <div class="step">
+              <strong>دوم</strong>
+              سگمنت‌ها را مالکانه و قابل بازتولید بسازید؛ آستانه‌ها برای همه کاربران یکسان نیست.
+            </div>
+            <div class="step">
+              <strong>سوم</strong>
+              Event log دقیق، core actions معنادار، Tp مبتنی بر داده و grace period را جدی بگیرید.
+            </div>
+            <div class="step">
+              <strong>چهارم</strong>
+              F1 تنها معیار کافی نیست؛ rate_ratio و std را هم گزارش کنید.
+            </div>
+            <div class="step">
+              <strong>پنجم</strong>
+              اگر drift دیدید، به‌جای patchهای سطحی، مدل را به سمت sequence-aware ببرید.
+            </div>
+            <div class="step">
+              <strong>ششم</strong>
+               مدل تفسیرپذیر را حذف نکنید؛ آن لایه برای توضیح و نگهداری عملیاتی ضروری است.
+            </div>
+          </div>
+
+          
+          
+        </section>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
+
+
+

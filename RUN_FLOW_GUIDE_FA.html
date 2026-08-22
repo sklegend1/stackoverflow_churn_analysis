@@ -1,0 +1,948 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>راهنمای جریان اجرای پروژه: از داده خام تا LSTM</title>
+  <style>
+    :root {
+      --bg: #eef4fb;
+      --panel: #ffffff;
+      --text: #182231;
+      --muted: #5e6a7a;
+      --brand: #0e63b6;
+      --brand-2: #0a4178;
+      --accent: #f2a33b;
+      --accent-bg: #fff5e6;
+      --ok: #198754;
+      --warn: #b45f06;
+      --border: #d9e3ef;
+      --shadow: 0 18px 45px rgba(15, 23, 42, 0.10);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Tahoma, "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(14, 99, 182, 0.12), transparent 30%),
+        radial-gradient(circle at top right, rgba(242, 163, 59, 0.10), transparent 25%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.95;
+    }
+
+    .wrap {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 24px 16px 60px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #0a1a2f 0%, #0c4c8b 54%, #0e63b6 100%);
+      color: #fff;
+      border-radius: 28px;
+      padding: 36px 30px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.14);
+    }
+
+    .hero::before {
+      width: 260px;
+      height: 260px;
+      top: -120px;
+      left: -70px;
+    }
+
+    .hero::after {
+      width: 180px;
+      height: 180px;
+      bottom: -90px;
+      right: -20px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 3vw, 3rem);
+      line-height: 1.25;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 980px;
+      color: rgba(255,255,255,0.92);
+      position: relative;
+      z-index: 1;
+      font-size: 1.02rem;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+      backdrop-filter: blur(8px);
+      font-size: 0.93rem;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 292px minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+      margin-top: 20px;
+    }
+
+    .toc,
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .toc {
+      position: sticky;
+      top: 18px;
+      padding: 20px 16px;
+    }
+
+    .toc h2 {
+      margin: 0 0 12px;
+      font-size: 1.1rem;
+      color: var(--brand-2);
+    }
+
+    .toc a {
+      display: block;
+      text-decoration: none;
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 12px;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .toc a:hover {
+      background: #edf5ff;
+      color: var(--brand-2);
+    }
+
+    .content {
+      display: grid;
+      gap: 18px;
+    }
+
+    .card {
+      padding: 24px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .section-head h2,
+    .section-head h3 {
+      margin: 0;
+      color: var(--brand-2);
+      line-height: 1.25;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #edf5ff;
+      color: var(--brand-2);
+      border: 1px solid #d6e8fb;
+      font-size: 0.84rem;
+    }
+
+    .lead {
+      color: var(--muted);
+      margin-top: 0;
+      font-size: 1.01rem;
+    }
+
+    .note,
+    .warn,
+    .good {
+      border-radius: 18px;
+      padding: 16px 18px;
+      margin: 16px 0;
+      border-right: 5px solid transparent;
+    }
+
+    .note {
+      background: #f8fbff;
+      border-color: var(--brand);
+    }
+
+    .warn {
+      background: #fff8ec;
+      border-color: var(--accent);
+    }
+
+    .good {
+      background: #f3fbf7;
+      border-color: var(--ok);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 8px;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--border);
+      padding: 11px 13px;
+      vertical-align: top;
+      text-align: right;
+    }
+
+    th {
+      background: #f3f7fb;
+      color: var(--brand-2);
+      font-weight: 700;
+    }
+
+    tr:nth-child(even) td {
+      background: #fcfdff;
+    }
+
+    ul,
+    ol {
+      margin: 10px 0 10px;
+      padding-right: 22px;
+    }
+
+    code,
+    pre {
+      direction: ltr;
+      font-family: Consolas, "Courier New", monospace;
+    }
+
+    pre {
+      background: #0f172a;
+      color: #e8eef8;
+      border-radius: 18px;
+      padding: 16px 18px;
+      overflow: auto;
+      margin: 14px 0;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .mini {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      background: linear-gradient(180deg, #ffffff, #fbfdff);
+    }
+
+    .mini h4 {
+      margin: 0 0 8px;
+      color: var(--brand-2);
+    }
+
+    .flow {
+      display: grid;
+      gap: 12px;
+    }
+
+    .step {
+      background: #f9fbff;
+      border-right: 4px solid var(--brand);
+      border-radius: 14px;
+      padding: 12px 16px;
+    }
+
+    .step strong {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--brand-2);
+    }
+
+    .formula {
+      background: #f7fbff;
+      border: 1px solid #dbe8f7;
+      border-radius: 16px;
+      padding: 12px 14px;
+      margin: 12px 0;
+      font-size: 1.02rem;
+    }
+
+    .small {
+      font-size: 0.94rem;
+      color: var(--muted);
+    }
+
+    .center { text-align: center; }
+    .muted { color: var(--muted); }
+
+    .kbd {
+      display: inline-block;
+      padding: 2px 8px;
+      border: 1px solid #cdd9e8;
+      border-bottom-width: 2px;
+      border-radius: 8px;
+      background: #fff;
+      direction: ltr;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 1024px) {
+      .layout { grid-template-columns: 1fr; }
+      .toc { position: static; }
+    }
+
+    @media (max-width: 700px) {
+      .wrap { padding: 12px 10px 36px; }
+      .hero { padding: 24px 18px; border-radius: 22px; }
+      .card { padding: 18px; }
+      .two-col { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; white-space: nowrap; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>راهنمای جریان اجرا از داده خام تا مدل LSTM</h1>
+      <p>
+        این سند یک runbook فارسی، قابل‌ارائه و قابل‌تکرار برای یک کاربر نیمه‌فنی است. هدف این است که بتوانید
+        بفهمید هر مرحله چرا وجود دارد، چه ورودی‌ای می‌گیرد، چه خروجی‌ای می‌دهد، و چگونه می‌شود همین مسیر را روی یک
+        دیتاست جدید دوباره اجرا کرد.
+      </p>
+      <div class="chips">
+        <span class="chip">از داده خام تا آموزش LSTM</span>
+        <span class="chip">توضیح فنی + مبنای علمی</span>
+        <span class="chip">مناسب ارائه و بازتولید</span>
+      </div>
+    </section>
+
+    <div class="layout">
+      <aside class="toc">
+        <h2>فهرست</h2>
+        <a href="#purpose">۱. هدف و دامنه</a>
+        <a href="#science">۲. مبنای علمی روش</a>
+        <a href="#data-contract">۳. قرارداد داده</a>
+        <a href="#raw-to-eventlog">۴. از داده خام تا Event Log</a>
+        <a href="#feature-matrix">۵. Feature Matrix</a>
+        <a href="#core-log">۶. Core Event Log و Split</a>
+        <a href="#teacher">۷. مدل تفسیرپذیر و teacher</a>
+        <a href="#lstm">۸. آموزش LSTM</a>
+        <a href="#eval">۹. ارزیابی و کنترل کیفیت</a>
+        <a href="#repeat">۱۰. چگونه روی دیتاست جدید تکرار کنیم</a>
+        <a href="#checklist">۱۱. چک‌لیست اجرایی</a>
+        <a href="#pitfalls">۱۲. خطاهای رایج</a>
+        <a href="#summary">۱۳. جمع‌بندی قابل ارائه</a>
+      </aside>
+
+      <main class="content">
+        <section class="card" id="purpose">
+          <div class="section-head">
+            <h2>۱. هدف و دامنه</h2>
+            <span class="tag">از صفر تا LSTM</span>
+          </div>
+          <p class="lead">
+            این راهنما مسیر کامل را توضیح می‌دهد: از داده خام تا ساخت مدل LSTM برای پیش‌بینی ریزش، همراه با مرحله‌های
+            میانی که هم برای تفسیرپذیری لازم‌اند و هم برای یادگیری بهتر LSTM.
+          </p>
+          <div class="note" dir="rtl">
+            <strong>چیزی که باید از ابتدا روشن باشد:</strong>
+            این پروژه فقط یک مدل نیست. یک pipeline است: 
+            <p>
+            داده خام ← event log ← ویژگی‌ها ← feature importance ← core actions ← پنجره زمانی
+            Tp ← برچسب ریزش ← WA/Ap ← ارزیابی زمانی ← LSTM.
+          </p></div>
+          <div class="two-col">
+            <div class="mini">
+              <h4>این سند برای چه کسی است؟</h4>
+              <p>
+                برای یک کاربر نیمه‌فنی که می‌خواهد بداند هر مرحله چه می‌کند و چگونه باید همان مسیر را روی دیتاست دیگری
+                دوباره اجرا کند.
+              </p>
+            </div>
+            <div class="mini">
+              <h4>خروجی نهایی چیست؟</h4>
+              <p>
+                یک مدل ترتیبی LSTM که از توالی رفتار، فاصله زمانی، و زمینه‌ی سگمنت/زمان برای پیش‌بینی churn، Ap و Tp
+                استفاده می‌کند.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" id="science">
+          <div class="section-head">
+            <h2>۲. مبنای علمی روش</h2>
+            <span class="tag">چرا این pipeline معتبر است؟</span>
+          </div>
+          <p class="lead">
+            مبنای علمی این کار از یک مشاهده ساده شروع می‌شود: در بسیاری از محصولات، ریزش یک event رسمی ندارد. کاربر
+            ناگهان حذف نمی‌شود؛ بلکه الگوی فعالیتش کم‌کم تغییر می‌کند. پس باید ریزش را از رفتار استنباط کرد، نه از یک
+            برچسب قراردادی.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>اصل علمی</th>
+                <th>معنا در این پروژه</th>
+                <th>اثر روی طراحی</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Churn رفتاری است</td>
+                <td>عدم فعالیت آینده بعد از یک grace period، معیار ریزش می‌شود.</td>
+                <td>به‌جای label قراردادی، یک تعریف عملیاتی می‌سازیم.</td>
+              </tr>
+              <tr>
+                <td>رفتار کاربران ناهمگن است</td>
+                <td>کاربر فعال، کم‌فعال، متخصص، پرسشگر و ... آستانه‌ی یکسان ندارند.</td>
+                <td>همه چیز per-segment انجام می‌شود.</td>
+              </tr>
+              <tr>
+                <td>زمان اهمیت دارد</td>
+                <td>فاصله‌ی بین رویدادها و تغییر رژیم زمانی، بخشی از سیگنال است.</td>
+                <td>Tp، WA و در نهایت LSTM زمان‌محور می‌شوند.</td>
+              </tr>
+              <tr>
+                <td>Drift واقعی است</td>
+                <td>معنای فعالیت در سال‌های مختلف یکسان نیست.</td>
+                <td>ارزیابی sliding cutoff و در نهایت مدل sequence-aware لازم می‌شود.</td>
+              </tr>
+              <tr>
+                <td>تفسیرپذیری باید بماند</td>
+                <td>مدل ساده‌تر، teacher و explanation layer برای مدل پیشرفته‌تر می‌شود.</td>
+                <td>rule-based + LSTM را با هم نگه می‌داریم.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="warn">
+            <strong>نتیجه‌ی عملی:</strong>
+            اگر فقط یک مدل black-box بسازید، بخشی از فهم سیستم را از دست می‌دهید. این پروژه عمداً از یک مدل
+            تفسیرپذیر شروع می‌کند تا هم baseline داشته باشد و هم مبنای آموزش مدل ترتیبی.
+          </div>
+        </section>
+
+        <section class="card" id="data-contract">
+          <div class="section-head">
+            <h2>۳. قرارداد داده</h2>
+            <span class="tag">چه چیزی لازم دارید؟</span>
+          </div>
+          <p>
+            قبل از شروع، باید مطمئن شوید که داده شما با این روش سازگار است. اگر این قرارداد برقرار نباشد، نتیجه قابل
+            تکرار نخواهد بود.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>نیاز</th>
+                <th>توضیح</th>
+                <th>اگر نباشد</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>event-level data</td>
+                <td>هر رویداد باید user_id، timestamp و action_type داشته باشد.</td>
+                <td>دیگر نمی‌توان gap، Tp و sequence ساخت.</td>
+              </tr>
+              <tr>
+                <td>حداقل چند سال تاریخچه</td>
+                <td>برای دیدن drift و ارزیابی چند cutoff لازم است.</td>
+                <td>نتیجه فقط برای یک دوره خاص اعتبار دارد.</td>
+              </tr>
+              <tr>
+                <td>سگمنت‌های پایدار</td>
+                <td>همه آستانه‌ها و teacher targets برای هر سگمنت جدا هستند.</td>
+                <td>مدل از پایه مبهم می‌شود.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="good">
+            <strong>برای دیتاست جدید چه کنید؟</strong>
+            اگر سگمنت‌های موجود ندارید، اول یک سگمنت‌بندی روشن و قابل نسخه‌بندی تعریف کنید. اگر سگمنت‌ها را از
+            خوشه‌بندی می‌سازید، artifact، feature list و نسخه‌ی داده را ذخیره کنید تا کاربر جدید هم قابل نسبت‌دادن باشد.
+          </div>
+        </section>
+
+        <section class="card" id="raw-to-eventlog">
+          <div class="section-head">
+            <h2>۴. از داده خام تا Event Log</h2>
+            <span class="tag">مرحله‌ی پایه‌ای</span>
+          </div>
+          <p class="lead">
+            در پروژه اصلی، داده خام Stack Overflow از چند منبع می‌آمد و بعد به event log تبدیل می‌شد. برای دیتاست جدید
+            هم باید همین منطق حفظ شود: داده خام را به یک جدول رویداد استاندارد تبدیل کنید، نه یک جدول تجمیعی.
+          </p>
+
+          <div class="flow">
+            <div class="step"><strong>مرحله ۴.۱: منبع خام</strong> XML / استخراج خام / هر ساختار مشابهی که رویدادها را نگه می‌دارد.</div>
+            <div class="step"><strong>مرحله ۴.۲: لایه‌ی میانی</strong> اگر لازم است ابتدا به storage تحلیلی مثل MySQL یا DuckDB منتقل کنید.</div>
+            <div class="step"><strong>مرحله ۴.۳: خروجی شاردشده</strong> فایل‌های Parquet یا shardهای مشابه برای پردازش مقیاس‌پذیر.</div>
+            <div class="step"><strong>مرحله ۴.۴: eventlog نهایی</strong> جدول رویداد استاندارد با شناسه کاربر، زمان، action type و gap.</div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>فایل / مرحله</th>
+                <th>ورودی</th>
+                <th>خروجی</th>
+                <th>منطق علمی</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>create_eventlog_v2.py</td>
+                <td>شاردهای خام/processed</td>
+                <td>eventlog_v2.parquet</td>
+                <td>یکسان‌سازی رویدادها و محاسبه gap per user</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="formula">
+            <strong>قاعده‌ی gap:</strong>
+            اول داده را بر اساس <span class="kbd">user_id</span> و <span class="kbd">timestamp</span> مرتب کنید، سپس فاصله بین دو رویداد متوالی همان کاربر را حساب کنید.
+          </div>
+
+          <pre><code>df = df.sort(["user_id", "timestamp"])
+df = df.with_columns(
+    (pl.col("timestamp").diff().over("user_id") / 1_000_000)
+    .alias("gap_time_actions_seconds")
+)</code></pre>
+
+          <div class="warn">
+            <strong>نکته‌ی مهم اجرایی:</strong>
+            اسکریپت‌ها باید از دایرکتوری خودشان اجرا شوند. اگر از ریشه‌ی پروژه اجرا شوند، pathهای نسبی و sys.path ممکن
+            است خراب شوند.
+          </div>
+        </section>
+
+        <section class="card" id="feature-matrix">
+          <div class="section-head">
+            <h2>۵. Feature Matrix</h2>
+            <span class="tag">پایه‌ی سگمنت‌سازی و core actions</span>
+          </div>
+          <p>
+            در این مرحله، event log به ماتریس ویژگی در سطح کاربر تبدیل می‌شود. این ماتریس برای تشخیص ساختار رفتاری
+            کاربران و استخراج اهمیت اکشن‌ها استفاده می‌شود.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>اسکریپت</th>
+                <th>ورودی</th>
+                <th>خروجی</th>
+                <th>چرا مهم است؟</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>src/data_engineering/create_feature_matrix.py</td>
+                <td>data/processed/eventlog_v2.parquet</td>
+                <td>data/processed/feature_matrix_v2.parquet</td>
+                <td>ورودی مدل‌های تشخیص سگمنت و feature importance</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="good">
+            <strong>قاعده‌ی فنی:</strong>
+            در ETL مقیاس‌دار از Polars lazy scan و collect(engine="streaming") استفاده کنید و pandas را فقط در مرز
+            sklearn / XGBoost به کار ببرید.
+          </div>
+        </section>
+
+        <section class="card" id="core-log">
+          <div class="section-head">
+            <h2>۷. Core Event Log و Split</h2>
+            <span class="tag">نقطه‌ی اتصال rule-based و LSTM</span>
+          </div>
+          <p>
+            core event log فقط رویدادهای مهم را نگه می‌دارد. این مرحله هم برای مدل تفسیرپذیر لازم است و هم برای LSTM،
+            چون sequence باید روی فعالیت‌های معنادار ساخته شود نه روی نویز کل رویدادها.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>اسکریپت</th>
+                <th>وظیفه</th>
+                <th>خروجی</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>src/data_engineering/create_core_eventlog_splited.py</td>
+                <td>فیلتر core actions بر اساس core_activity_per_persona_named.csv و split کاربرمحور 80/20</td>
+                <td>core_eventlog_train_v1.parquet و core_eventlog_eval_v1.parquet</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            این پروژه نشان داد که نسخه‌ی split شده برای پایپ‌لاین واقعی لازم است. نسخه‌ی غیر split فقط یک core log
+            واحد می‌سازد و برای training/evaluation جداگانه کافی نیست.
+          </p>
+
+          <div class="formula">
+            <strong>چرا split کاربرمحور؟</strong>
+            چون اگر کاربر بین train و eval شکسته شود، leakage رخ می‌دهد و ارزیابی واقعی نخواهد بود.
+          </div>
+
+          <pre><code># خروجی‌های مورد انتظار
+core_eventlog_train_v1.parquet
+core_eventlog_eval_v1.parquet</code></pre>
+
+          <div class="warn">
+            <strong>اشتباه رایج:</strong>
+            با split event-level یا time-level ساده، ممکن است اطلاعات آینده به training نشت کند. این pipeline عمداً
+            split را در سطح user انجام می‌دهد.
+          </div>
+        </section>
+
+        <section class="card" id="teacher">
+          <div class="section-head">
+            <h2>۸. مدل تفسیرپذیر و نقش teacher</h2>
+            <span class="tag">Scientific bridge</span>
+          </div>
+          <p>
+            قبل از LSTM، یک لایه‌ی تفسیرپذیر می‌سازیم که Ap و Tp را به‌صورت داده‌محور استخراج کند. این لایه فقط برای
+            توضیح نیست؛ بعداً نقش teacher برای مدل عمیق‌تر را هم بازی می‌کند.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>مرحله</th>
+                <th>اسکریپت</th>
+                <th>خروجی</th>
+                <th>نقش علمی</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>core actions importance</td>
+                <td>feature importance by XGBoost</td>
+                <td>core_activity_per_persona_named.csv</td>
+                <td>استخراج gain برای هر سگمنت و action</td>
+              </tr>
+              <tr>
+                <td>rule-based / temporal search</td>
+                <td>tp_ap_xgboost_enhanced.py</td>
+                <td>tp_ap_xgb_enhanced_best_params_WA_recency.csv</td>
+                <td>تعیین Ap/Tp و ساخت teacher targets</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="good">
+            <strong>چرا این کار علمی است؟</strong>
+            چون LSTM را از صفر و بدون راهنما آموزش نمی‌دهیم. مدل تفسیرپذیر، یک prior رفتاری می‌دهد و باعث می‌شود خروجی
+            مدل عمیق‌تر با منطق کسب‌وکار هم‌راستا بماند.
+          </div>
+        </section>
+
+        <section class="card" id="lstm">
+          <div class="section-head">
+            <h2>۹. آموزش LSTM</h2>
+            <span class="tag">مرحله‌ی آخر</span>
+          </div>
+          <p class="lead">
+            LSTM توالی رویدادها را می‌بیند و با استفاده از gain، فاصله زمانی بین رویدادها، ویژگی‌های زمانی و embedding
+            سگمنت، سه خروجی را پیش‌بینی می‌کند: churn، Ap و Tp.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>ورودی</th>
+                <th>شکل</th>
+                <th>معنا</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>sequence</td>
+                <td>[batch, 50, 2]</td>
+                <td>gain و time_delta برای ۵۰ رویداد اخیر</td>
+              </tr>
+              <tr>
+                <td>global_feat</td>
+                <td>[batch, 4]</td>
+                <td>days_since_last، era، month، year</td>
+              </tr>
+              <tr>
+                <td>persona_feat</td>
+                <td>[batch, 10] → embedding 32</td>
+                <td>نمایش فشرده‌ی سگمنت از statistics</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="formula">
+            <strong>تابع هدف:</strong>
+            <code>2.0 * BCE(churn) + 1.0 * MSE(Ap) + 0.1 * MSE(Tp)</code>
+          </div>
+
+          <div class="two-col">
+            <div class="mini">
+              <h4>چرا multi-task؟</h4>
+              <p>
+                چون مدل فقط churn را یاد نمی‌گیرد؛ بلکه Ap و Tp را هم هم‌زمان می‌بیند. این کار regularization ایجاد می‌کند
+                و تفسیرپذیری را حفظ می‌کند.
+              </p>
+            </div>
+            <div class="mini">
+              <h4>چرا time_delta مهم است؟</h4>
+              <p>
+                چون drift و شدت فعالیت در فاصله‌های زمانی معنا پیدا می‌کنند. بدون time_delta، LSTM فقط یک نسخه پیچیده‌تر
+                از feature تجمیعی خواهد بود.
+              </p>
+            </div>
+          </div>
+
+          <pre><code>SEQUENCE_LENGTH = 50
+PERSONA_EMBED_DIM = 32
+LSTM_HIDDEN = 128
+NUM_LSTM_LAYERS = 2
+BATCH_SIZE = 256
+LEARNING_RATE = 0.001
+GRACE_DAYS = 90</code></pre>
+
+          <table>
+            <thead>
+              <tr>
+                <th>فایل/آرتیفکت</th>
+                <th>نقش</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>checkpoints/best_temporal_lstm_model.pt</td>
+                <td>وزن‌های آموزش‌دیده‌ی مدل</td>
+              </tr>
+              <tr>
+                <td>checkpoints/lstm_model_metadata.pkl</td>
+                <td>متادیتا، embedding matrix و تنظیمات لازم برای evaluation</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="warn">
+            <strong>نکته‌ی عملی:</strong>
+            مدل evaluation هم وزن‌ها و هم metadata را لازم دارد. اگر یکی از این دو را حذف کنید، ارزیابی کامل ممکن نیست.
+          </div>
+        </section>
+
+        <section class="card" id="eval">
+          <div class="section-head">
+            <h2>۱۰. ارزیابی و کنترل کیفیت</h2>
+            <span class="tag">چگونه بفهمیم درست کار کرده؟</span>
+          </div>
+          <p>
+            ارزیابی درست فقط یک عدد F1 نیست. این پروژه نشان داد که باید drift، نرخ پیش‌بینی، و عملکرد سال‌به‌سال را
+            هم بررسی کرد.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>نوع ارزیابی</th>
+                <th>چرا لازم است؟</th>
+                <th>خروجی مورد انتظار</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Multi-year evaluation</td>
+                <td>برای دیدن روند drift در سال‌های مختلف</td>
+                <td>csv گزارش yearly results</td>
+              </tr>
+              <tr>
+                <td>Per-segment check</td>
+                <td>برای تشخیص سگمنت‌های ضعیف</td>
+                <td>میانگین و std در هر سگمنت</td>
+              </tr>
+              <tr>
+                <td>rate_ratio</td>
+                <td>برای فهم over-prediction</td>
+                <td>نسبت churn پیش‌بینی‌شده به واقعی</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="good">
+            <strong>معیار موفقیت علمی در این پروژه:</strong>
+            مدل LSTM باید نسبت به rule-based baseline بهتر شود و هم‌زمان حساسیتش به سال‌های قدیمی کمتر شود. اگر F1
+            بالا برود اما rate_ratio خراب شود، نتیجه هنوز قابل اتکا نیست.
+          </div>
+        </section>
+
+        <section class="card" id="repeat">
+          <div class="section-head">
+            <h2>۱۱. چگونه روی دیتاست جدید تکرار کنیم</h2>
+            <span class="tag">روش بازتولید</span>
+          </div>
+          <p class="lead">
+            اگر بخواهید همین روش را روی داده‌ی جدید اجرا کنید، ترتیب مراحل را تغییر ندهید. هر مرحله به مرحله قبل وابسته
+            است.
+          </p>
+
+          <div class="flow">
+            <div class="step"><strong>۱) داده خام را آماده کنید</strong> مطمئن شوید هر رویداد actor مشخص و timestamp معتبر دارد.</div>
+            <div class="step"><strong>۲) event log بسازید</strong> رویدادها را یکسان کنید و gap را حساب کنید.</div>
+            <div class="step"><strong>۳) feature matrix بسازید</strong> تا بتوانید سگمنت‌ها و importance را استخراج کنید.</div>
+            <div class="step"><strong>۴) core actions را انتخاب کنید</strong> و core event log بسازید.</div>
+            <div class="step"><strong>۵) split را کاربرمحور انجام دهید</strong> تا leakage رخ ندهد.</div>
+            <div class="step"><strong>۶) model تفسیرپذیر را آموزش دهید</strong> تا Ap/Tp و baseline داشته باشید.</div>
+            <div class="step"><strong>۷) LSTM را آموزش دهید</strong> تا sequence learning و drift-awareness اضافه شود.</div>
+            <div class="step"><strong>۸) ارزیابی سال‌به‌سال انجام دهید</strong> و همیشه drift و rate_ratio را گزارش کنید.</div>
+          </div>
+
+          <div class="note">
+            <strong>قانون طلایی:</strong>
+            اگر در یک دیتاست جدید مرحله‌ی ۴ یا ۵ را تغییر دهید، این فقط یک re-run نیست؛ یک آزمایش متفاوت است. پس
+            تغییرها را مستند کنید.
+          </div>
+        </section>
+
+        <section class="card" id="checklist">
+          <div class="section-head">
+            <h2>۱۲. چک‌لیست اجرایی</h2>
+            <span class="tag">برای دنبال‌کردن گام‌ها</span>
+          </div>
+          <ol>
+            <li>مطمئن شوید داده خام event-level است.</li>
+            <li>برچسب سگمنت‌ها را مشخص و قابل نسخه‌بندی کنید.</li>
+            <li>event log را بسازید و gapها را محاسبه کنید.</li>
+            <li>feature matrix را تولید کنید.</li>
+            <li>core actions را پیدا کنید و core event log بسازید.</li>
+            <li>split کاربرمحور train/eval را اجرا کنید.</li>
+            <li>Rule-based / XGBoost را برای Ap/Tp و baseline اجرا کنید.</li>
+            <li>WA و WA_recency را ارزیابی کنید.</li>
+            <li>LSTM را با sequence، time_delta و persona embedding آموزش دهید.</li>
+            <li>نتایج را سال‌به‌سال و سگمنت‌به‌سگمنت بررسی کنید.</li>
+          </ol>
+        </section>
+
+        <section class="card" id="pitfalls">
+          <div class="section-head">
+            <h2>۱۳. خطاهای رایج</h2>
+            <span class="tag">چیزهایی که معمولاً خراب می‌شوند</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>خطا</th>
+                <th>علت</th>
+                <th>راه‌حل</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>اجرای script از ریشه پروژه</td>
+                <td>relative pathها به‌هم می‌ریزند.</td>
+                <td>هر script را از directory خودش اجرا کنید.</td>
+              </tr>
+              <tr>
+                <td>split نادرست</td>
+                <td>leakage بین train و eval</td>
+                <td>split را user-level نگه دارید.</td>
+              </tr>
+              <tr>
+                <td>فقط نگاه‌کردن به F1</td>
+                <td>over-prediction دیده نمی‌شود.</td>
+                <td>rate_ratio و std را هم گزارش کنید.</td>
+              </tr>
+              <tr>
+                <td>حذف مدل rule-based</td>
+                <td>تفسیر و teacher از بین می‌رود.</td>
+                <td>baseline را نگه دارید، حتی اگر مدل آخر LSTM باشد.</td>
+              </tr>
+              <tr>
+                <td>استفاده از pipeline قدیمیِ non-split</td>
+                <td>خروجی train/eval جداگانه تولید نمی‌شود.</td>
+                <td>برای pipeline واقعی از core_eventlog_splited.py استفاده کنید.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="card" id="summary">
+          <div class="section-head">
+            <h2>۱۴. جمع‌بندی قابل ارائه</h2>
+            
+          </div>
+          <div class="flow">
+            <div class="step"><strong>مرحله ۱</strong> داده خام را به event log تبدیل می‌کنیم تا رفتار واقعی قابل اندازه‌گیری شود.</div>
+            <div class="step"><strong>مرحله ۲</strong> از داده، core actions را استخراج می‌کنیم تا فقط فعالیت‌های معنادار وارد مدل شوند.</div>
+            <div class="step"><strong>مرحله ۳</strong> پنجره‌ی زمانی Tp و آستانه‌ی Ap را از رفتار کاربران می‌سازیم، نه از حدس انسانی.</div>
+            <div class="step"><strong>مرحله ۴</strong> drift را سال‌به‌سال می‌سنجیم، چون رفتار کاربران در طول زمان تغییر می‌کند.</div>
+            <div class="step"><strong>مرحله ۵</strong> LSTM را برای یادگیری sequence و زمان آموزش می‌دهیم تا از baseline تفسیرپذیر عبور کنیم.</div>
+          </div>
+
+          <div class="good center">
+            <strong>پیام اصلی:</strong>
+            این pipeline فقط یک مدل نیست؛ یک روش قابل‌تکرار برای تبدیل رفتار خام کاربران به یک سیستم پیش‌بینی
+            تفسیرپذیر و بعد sequence-aware است.
+          </div>
+
+          
+        </section>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
+
+
+
+
+

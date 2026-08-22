@@ -1,4 +1,4 @@
-import sys
+﻿import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 import time
@@ -53,11 +53,11 @@ start = time.time()
 # ---------- Load base tables (lazy) ----------
 
 # filtered posts: only posts belonging to the 92k users
-posts = pl.scan_parquet("filtered_posts_parquet/*.parquet")
+posts = pl.scan_parquet("../../data/processed/filtered_posts_parquet/*.parquet")
 
 # filtered users with persona + last access
 users = (
-    pl.scan_parquet("filtered_users_parquet/*.parquet")
+    pl.scan_parquet("../../data/processed/filtered_users_parquet/*.parquet")
     .select([
         pl.col("Id").alias("user_id"),
         pl.col("ClusterNmf20").alias("persona"),
@@ -67,10 +67,10 @@ users = (
 )
 
 # full posthistory (we will filter by user later)
-ph = pl.scan_parquet("posthistory_parquet/*.parquet")
+ph = pl.scan_parquet("../../data/processed/posthistory_parquet/*.parquet")
 
 # full comments (we will filter by user later)
-comments = pl.scan_parquet("comments_parquet/*.parquet")
+comments = pl.scan_parquet("../../data/processed/comments_parquet/*.parquet")
 
 # ---------- Events: Create Post (from posts) ----------
 
@@ -217,3 +217,4 @@ print(f"Execution time: {end - start:.2f} seconds")
 print("Writing eventlog_v2.parquet...")
 eventlog.write_parquet("../../data/processed/eventlog_v2.parquet")
 print("Done.")
+

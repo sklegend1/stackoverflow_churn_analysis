@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بخش ۲ — سیستم قاعده‌مند | پروژه پیش‌بینی Churn در Stack Overflow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Tahoma', 'Arial', sans-serif;
+            line-height: 1.8;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            color: #2c3e50;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header .subtitle {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+
+        .nav-links {
+            background: #f8f9fa;
+            padding: 15px 40px;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: #f5576c;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #f093fb;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        h2 {
+            color: #f5576c;
+            font-size: 2em;
+            margin: 40px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #f5576c;
+        }
+
+        h3 {
+            color: #f093fb;
+            font-size: 1.5em;
+            margin: 30px 0 15px 0;
+        }
+
+        h4 {
+            color: #555;
+            font-size: 1.2em;
+            margin: 20px 0 10px 0;
+        }
+
+        p {
+            margin: 15px 0;
+            text-align: justify;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #f093fb15 0%, #f5576c15 100%);
+            border-right: 5px solid #f5576c;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+
+        .formula {
+            background: #f8f9fa;
+            border: 2px solid #f5576c;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 1.3em;
+            font-family: 'Courier New', monospace;
+            direction: ltr;
+        }
+
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .code-block .comment {
+            color: #5c6370;
+        }
+
+        .code-block .keyword {
+            color: #c678dd;
+        }
+
+        .code-block .string {
+            color: #98c379;
+        }
+
+        .code-block .function {
+            color: #61afef;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        table th {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .file-reference {
+            background: #fff3cd;
+            border-right: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .file-reference strong {
+            color: #856404;
+        }
+
+        .file-reference code {
+            background: #fff;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+        }
+
+        .info-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+        }
+
+        .info-card h4 {
+            color: #f5576c;
+            margin-top: 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
+        }
+
+        .stat-box .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .stat-box .label {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        ul, ol {
+            margin: 15px 0 15px 40px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border-right: 5px solid #ffc107;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+
+        .success {
+            background: #d1e7dd;
+            border-right: 5px solid #198754;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+
+        .danger {
+            background: #f8d7da;
+            border-right: 5px solid #dc3545;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 30px 40px;
+            text-align: center;
+            border-top: 2px solid #e9ecef;
+            color: #6c757d;
+        }
+
+        .comparison-table {
+            margin: 30px 0;
+        }
+
+        .comparison-table td:first-child {
+            font-weight: bold;
+            background: #f8f9fa;
+        }
+
+        .metric-good {
+            color: #198754;
+            font-weight: bold;
+        }
+
+        .metric-bad {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .step-box {
+            background: #f8f9fa;
+            border-right: 4px solid #f093fb;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .step-box h4 {
+            color: #f5576c;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>بخش ۲ — سیستم قاعده‌مند</h1>
+            <div class="subtitle">ساخت یک مدل تفسیری برای پیش‌بینی Churn</div>
+        </div>
+
+        <div class="nav-links">
+            <a href="بخش_۱_مسئله_و_داده‌ها.html">← بخش قبل</a>
+            <a href="#formula">❶ فرمول</a>
+            <a href="#core">❷ Core Activities</a>
+            <a href="#params">❸ تخمین پارامترها</a>
+            <a href="#eval">❹ ارزیابی</a>
+            <a href="#results">❺ نتایج</a>
+        </div>
+
+        <div class="content">
+
+            <!-- مقدمه -->
+            <div class="highlight-box">
+                <h3>🎯 هدف این بخش</h3>
+                <p>
+                    در این بخش یک سیستم <strong>قاعده‌مند و تفسیری</strong> می‌سازیم که بتواند برای هر کاربر بگوید آیا در معرض Churn است یا خیر. این سیستم باید:
+                </p>
+                <ul>
+                    <li>✅ قابل توضیح باشد (Interpretable)</li>
+                    <li>✅ پارامترهای قابل تنظیم داشته باشد</li>
+                    <li>✅ مبنایی برای مقایسه با مدل‌های پیچیده‌تر باشد</li>
+                </ul>
+            </div>
+
+            <!-- فرمول -->
+            <h2 id="formula">۱. فرمول قاعده‌مند</h2>
+
+            <h3>۱.۱ قاعده‌ی اصلی</h3>
+            <p>
+                برای کاربر <code>u</code> در پرسونا <code>p</code>:
+            </p>
+
+            <div class="formula">
+                Churn(u) = 𝟙[ WA(u, T<sub>p</sub>) &lt; A<sub>p</sub> ]
+            </div>
+
+            <table>
+                <tr>
+                    <th>پارامتر</th>
+                    <th>تعریف</th>
+                    <th>نحوه‌ی محاسبه</th>
+                </tr>
+                <tr>
+                    <td><strong>T<sub>p</sub></strong></td>
+                    <td>پنجره‌ی زمانی مشاهده</td>
+                    <td>α × p95(gap بین اکشن‌های کلیدی)</td>
+                </tr>
+                <tr>
+                    <td><strong>A<sub>p</sub></strong></td>
+                    <td>آستانه‌ی فعالیت</td>
+                    <td>از منحنی Precision-Recall</td>
+                </tr>
+                <tr>
+                    <td><strong>WA</strong></td>
+                    <td>فعالیت وزن‌دار</td>
+                    <td>Σ gain برای اکشن‌های کلیدی</td>
+                </tr>
+            </table>
+
+            <h3>۱.۲ چرا Gain به‌جای Count؟</h3>
+            <div class="info-card">
+                <h4>انتخاب بین دو رویکرد</h4>
+                <table class="comparison-table">
+                    <tr>
+                        <td>رویکرد</td>
+                        <td>Count-based</td>
+                        <td>Gain-based ✅</td>
+                    </tr>
+                    <tr>
+                        <td>فرمول</td>
+                        <td>Σ count(event)</td>
+                        <td>Σ gain(event)</td>
+                    </tr>
+                    <tr>
+                        <td>مزیت</td>
+                        <td>ساده</td>
+                        <td>وزن‌دهی هوشمند</td>
+                    </tr>
+                    <tr>
+                        <td>معایب</td>
+                        <td>همه‌ی اکشن‌ها برابر</td>
+                        <td>وابسته به XGBoost</td>
+                    </tr>
+                </table>
+                <p style="margin-top: 15px;">
+                    <strong>نتیجه:</strong> اکشن‌های مختلف اهمیت متفاوتی دارند. یک پاسخ (Answer) ارزشمندتر از یک نظر (Comment) است. <strong>Gain از XGBoost این تمایز را به‌صورت داده‌محور یاد می‌گیرد.</strong>
+                </p>
+            </div>
+
+            <!-- Core Activities -->
+            <h2 id="core">۲. استخراج Core Activities</h2>
+
+            <h3>۲.۱ چرا Core Activities؟</h3>
+            <p>
+                تمام انواع Action برای تشخیص Churn اهمیت یکسان ندارند. برخی فعالیت‌ها:
+            </p>
+            <ul>
+                <li>❌ بسیار نادر هستند</li>
+                <li>❌ برای برخی پرسوناها اصلاً انجام نمی‌شوند</li>
+                <li>❌ نویز ایجاد می‌کنند</li>
+            </ul>
+
+            <h3>۲.۲ رویکرد: XGBoost One-vs-Rest</h3>
+            <p>
+                برای هر پرسونا، یک مدل XGBoost آموزش می‌بینیم که:
+            </p>
+
+            <div class="formula" style="font-size: 1.1em;">
+                Target<sub>p</sub> = { 1  if persona = p<br>
+                                       0  otherwise }
+            </div>
+
+            <div class="step-box">
+                <h4>مراحل استخراج Core Activities:</h4>
+                <ol>
+                    <li>برای هر پرسونا، یک classifier One-vs-Rest بساز</li>
+                    <li>از <strong>Feature Importance (Gain)</strong> استفاده کن</li>
+                    <li><strong>۷ اکشن با بیشترین Gain</strong> را انتخاب کن</li>
+                    <li>فقط این اکشن‌ها را در Event Log نگه دار (Core Event Log)</li>
+                </ol>
+            </div>
+
+            <div class="code-block">
+<span class="keyword">for</span> persona <span class="keyword">in</span> range(20):
+    <span class="comment"># تعریف target به‌صورت One-vs-Rest</span>
+    df = fm.with_columns([
+        (pl.col(<span class="string">"persona"</span>) == persona).cast(pl.Int8).alias(<span class="string">"target"</span>)
+    ])
+
+    X = df.select(feature_cols).to_pandas()
+    y = df.select(<span class="string">"target"</span>).to_pandas()[<span class="string">"target"</span>]
+
+    <span class="comment"># آموزش XGBoost</span>
+    dtrain = xgb.<span class="function">DMatrix</span>(X, label=y)
+    params = {
+        <span class="string">"objective"</span>: <span class="string">"binary:logistic"</span>,
+        <span class="string">"max_depth"</span>: 6,
+        <span class="string">"learning_rate"</span>: 0.1,
+    }
+    model = xgb.<span class="function">train</span>(params, dtrain, num_boost_round=200)
+
+    <span class="comment"># استخراج Gain</span>
+    importance = model.<span class="function">get_score</span>(importance_type=<span class="string">"gain"</span>)
+            </div>
+
+            <h3>۲.۳ چرا ۷ اکشن؟</h3>
+            <div class="info-card">
+                <p>
+                    این عدد بر اساس آزمایش تجربی انتخاب شده است:
+                </p>
+                <ul>
+                    <li>تعداد <strong>کمتر</strong> → از دست رفتن اطلاعات</li>
+                    <li>تعداد <strong>بیشتر</strong> → اضافه شدن نویز</li>
+                    <li><strong>۷ اکشن</strong> → تعادل خوب بین اطلاعات و نویز</li>
+                </ul>
+            </div>
+
+            <h3>۲.۴ نمونه خروجی</h3>
+            <table>
+                <tr>
+                    <th>persona</th>
+                    <th>action_type_id</th>
+                    <th>action_name</th>
+                    <th>gain</th>
+                </tr>
+                <tr>
+                    <td>0</td>
+                    <td>2</td>
+                    <td>CreateAnswer</td>
+                    <td class="metric-good">145.2</td>
+                </tr>
+                <tr>
+                    <td>0</td>
+                    <td>70</td>
+                    <td>Comment</td>
+                    <td>89.7</td>
+                </tr>
+                <tr>
+                    <td>0</td>
+                    <td>14</td>
+                    <td>EditBody</td>
+                    <td>34.5</td>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>1</td>
+                    <td>CreateQuestion</td>
+                    <td class="metric-good">178.3</td>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>70</td>
+                    <td>Comment</td>
+                    <td>56.2</td>
+                </tr>
+            </table>
+
+            <div class="file-reference">
+                <strong>📁 اسکریپت:</strong> <code>src/data_engineering/create_core_eventlog_splited.py</code><br>
+                <strong>📄 خروجی:</strong> <code>data/processed/core_activity_per_persona_named.csv</code><br>
+                <strong>📄 Core Event Log:</strong>
+                <ul style="margin-top: 10px;">
+                    <li><code>data/processed/core_eventlog_train_v1.parquet</code> (۸۰٪ - آموزش)</li>
+                    <li><code>data/processed/core_eventlog_eval_v1.parquet</code> (۲۰٪ - ارزیابی)</li>
+                </ul>
+            </div>
+
+            <!-- تخمین پارامترها -->
+            <h2 id="params">۳. تخمین T<sub>p</sub> و A<sub>p</sub></h2>
+
+            <h3>۳.۱ تخمین T<sub>p</sub>: پنجره‌ی زمانی</h3>
+            <p>
+                <strong>T<sub>p</sub></strong> باید بر اساس ریتم طبیعی هر پرسونا باشد:
+            </p>
+
+            <div class="formula">
+                T<sub>p</sub> = α × p95(gap بین اکشن‌های کلیدی)
+            </div>
+
+            <p>
+                که در آن:
+            </p>
+            <ul>
+                <li><strong>p95(gap)</strong> = صدک ۹۵ فاصله‌ی زمانی بین اکشن‌های کلیدی پرسونا</li>
+                <li><strong>α</strong> = ضریب مقیاس‌بندی (با Grid Search پیدا می‌شود)</li>
+            </ul>
+
+            <div class="code-block">
+<span class="comment"># محاسبه‌ی p95 برای هر پرسونا</span>
+gap_stats = (
+    core_eventlog
+    .<span class="function">filter</span>(pl.col(<span class="string">"gap_time_key_actions_seconds"</span>) > 0)
+    .<span class="function">group_by</span>(<span class="string">"persona"</span>)
+    .<span class="function">agg</span>(
+        pl.col(<span class="string">"gap_time_key_actions_seconds"</span>)
+        .quantile(0.95)
+        .alias(<span class="string">"p95_gap"</span>)
+    )
+)
+
+<span class="comment"># Grid Search روی alpha</span>
+alpha_values = np.arange(3, 10, 1)  <span class="comment"># [3, 4, 5, ..., 9]</span>
+
+<span class="keyword">for</span> alpha <span class="keyword">in</span> alpha_values:
+    Tp = alpha * p95_gap
+    <span class="comment"># ارزیابی با این Tp...</span>
+            </div>
+
+            <div class="warning">
+                <strong>⚠️ محدودیت مهم:</strong> هر <code>T<sub>p</sub></code> که خارج از بازه‌ی <strong>۶۰–۲۷۰ روز</strong> باشد، نادیده گرفته می‌شود. این Sanity Check از پارامترهای نامعقول جلوگیری می‌کند.
+            </div>
+
+            <h3>۳.۲ تخمین A<sub>p</sub>: آستانه‌ی فعالیت</h3>
+            <p>
+                دو روش برای تخمین <strong>A<sub>p</sub></strong>:
+            </p>
+
+            <div class="step-box">
+                <h4>روش ۱: XGBoost + Precision-Recall Curve</h4>
+                <ol>
+                    <li>برای هر پرسونا، <code>WA</code> را به‌عنوان feature محاسبه کن</li>
+                    <li>یک XGBoost Classifier آموزش بده (target = actual churn)</li>
+                    <li>منحنی Precision-Recall را رسم کن</li>
+                    <li>آستانه‌ای را انتخاب کن که <strong>F1 را بیشینه می‌کند</strong></li>
+                </ol>
+            </div>
+
+            <div class="code-block">
+<span class="comment"># آموزش XGBoost</span>
+model = XGBClassifier(max_depth=6, learning_rate=0.1)
+model.<span class="function">fit</span>(X, y)
+
+<span class="comment"># محاسبه‌ی احتمالات</span>
+probs = model.<span class="function">predict_proba</span>(X)[:, 1]
+
+<span class="comment"># Precision-Recall Curve</span>
+precisions, recalls, thresholds = <span class="function">precision_recall_curve</span>(y, probs)
+
+<span class="comment"># پیدا کردن بهترین threshold</span>
+f1_scores = 2 * (precisions * recalls) / (precisions + recalls + 1e-9)
+best_idx = np.argmax(f1_scores)
+Ap = thresholds[best_idx]
+            </code-block>
+
+            <h3>۳.۳ نتایج تخمین پارامترها</h3>
+            <p>
+                بر اساس <code>results/best_params/tp_ap_xgb_enhanced_best_params_WA_simple.csv</code>:
+            </p>
+
+            <table>
+                <tr>
+                    <th>persona</th>
+                    <th>T<sub>p</sub> (روز)</th>
+                    <th>α</th>
+                    <th>A<sub>p</sub></th>
+                </tr>
+                <tr>
+                    <td>0</td>
+                    <td>242</td>
+                    <td>17.5</td>
+                    <td>0.202</td>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>251</td>
+                    <td>5.5</td>
+                    <td>0.270</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>251</td>
+                    <td>16.0</td>
+                    <td>0.303</td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td>236</td>
+                    <td>5.5</td>
+                    <td>0.285</td>
+                </tr>
+                <tr>
+                    <td>16</td>
+                    <td>249</td>
+                    <td>10.0</td>
+                    <td>0.375</td>
+                </tr>
+            </table>
+
+            <div class="success">
+                <strong>✅ مشاهده‌ی کلیدی:</strong> پارامترها بین پرسوناها متفاوت است!
+                <ul style="margin-top: 10px;">
+                    <li><code>T<sub>p</sub></code> از ۶۱ تا ۲۶۸ روز متغیر است</li>
+                    <li><code>α</code> از ۵.۵ تا ۱۹ متغیر است</li>
+                    <li><code>A<sub>p</sub></code> از ۰.۱۶ تا ۰.۴۶ متغیر است</li>
+                </ul>
+            </div>
+
+            <!-- ارزیابی -->
+            <h2 id="eval">۴. ارزیابی سیستم</h2>
+
+            <h3>۴.۱ تعریف Actual Churn</h3>
+            <p>
+                برای ارزیابی، باید بدانیم کاربر واقعاً Churn شده یا نه:
+            </p>
+
+            <div class="formula" style="font-size: 1em;">
+                actual_churn = 1  if کاربر هیچ رویدادی<br>
+                در [cutoff + grace, cutoff + grace + 365روز]<br>
+                نداشته باشد
+            </div>
+
+            <div class="info-card">
+                <h4>چرا Grace Period؟</h4>
+                <p>
+                    دوره‌ی مهلت (Grace Period) از برچسب‌گذاری اشتباه جلوگیری می‌کند:
+                </p>
+                <ul>
+                    <li>کاربر ممکن است <strong>موقتاً مشغول</strong> باشد (تعطیلات، کار فشرده)</li>
+                    <li>با grace period، فقط <strong>ناپدید شدن‌های طولانی‌مدت</strong> را Churn می‌دانیم</li>
+                    <li>در این پروژه: <code>grace_days = 90-180</code> روز</li>
+                </ul>
+            </div>
+
+            <div class="architecture-diagram" style="font-family: 'Courier New', monospace; background: #f8f9fa; padding: 20px; margin: 20px 0; border-radius: 8px; direction: ltr; text-align: left;">
+Timeline:
+
+|&lt;---- T<sub>p</sub> ----&gt;|&lt;-- Grace --&gt;|&lt;---- Observation (365d) ----&gt;|
+|              |             |                       |
+window_start   cutoff        cutoff+grace            cutoff+grace+365d
+
+اگر کاربر در بازه‌ی Observation هیچ فعالیتی نداشت → Churn = 1
+            </div>
+
+            <h3>۴.۲ روش Sliding Window</h3>
+            <p>
+                به‌جای ارزیابی روی یک تاریخ، روی <strong>پنجره‌های متعدد</strong> ارزیابی می‌کنیم:
+            </p>
+
+            <div class="code-block">
+<span class="keyword">def</span> <span class="function">generate_windows</span>(start_year=2015, end_year=2023, step_months=6):
+    windows = []
+    year = start_year
+    month = 1
+
+    <span class="keyword">while</span> year &lt; end_year:
+        cutoff = datetime(year, month, 1)
+        windows.append(cutoff)
+        month += step_months
+        <span class="keyword">if</span> month &gt; 12:
+            month -= 12
+            year += 1
+
+    <span class="keyword">return</span> windows
+
+<span class="comment"># خروجی: 24 پنجره از 2012 تا 2024</span>
+windows = generate_windows(2012, 2024, 6)
+            </div>
+
+            <div class="highlight-box">
+                <strong>چرا Sliding Window؟</strong>
+                <ul>
+                    <li>✅ پایداری مدل را در طول زمان می‌سنجد</li>
+                    <li>✅ از overfitting به یک تاریخ خاص جلوگیری می‌کند</li>
+                    <li>✅ Temporal Drift را آشکار می‌کند</li>
+                </ul>
+            </div>
+
+            <h3>۴.۳ معیارهای ارزیابی</h3>
+            <table>
+                <tr>
+                    <th>معیار</th>
+                    <th>فرمول</th>
+                    <th>تفسیر</th>
+                </tr>
+                <tr>
+                    <td><strong>Precision</strong></td>
+                    <td>TP / (TP + FP)</td>
+                    <td>از کسانی که گفتیم Churn می‌شوند، چند نفر واقعاً Churn شدند؟</td>
+                </tr>
+                <tr>
+                    <td><strong>Recall</strong></td>
+                    <td>TP / (TP + FN)</td>
+                    <td>از کسانی که واقعاً Churn شدند، چند نفر را تشخیص دادیم؟</td>
+                </tr>
+                <tr>
+                    <td><strong>F1</strong></td>
+                    <td>2 × (P × R) / (P + R)</td>
+                    <td>میانگین هارمونیک Precision و Recall</td>
+                </tr>
+                <tr>
+                    <td><strong>Rate Ratio</strong></td>
+                    <td>pred_rate / actual_rate</td>
+                    <td>نسبت نرخ پیش‌بینی‌شده به واقعی (باید ~1 باشد)</td>
+                </tr>
+            </table>
+
+            <!-- نتایج -->
+            <h2 id="results">۵. نتایج سیستم Rule-based</h2>
+
+            <h3>۵.۱ عملکرد کلی</h3>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="number">0.56</div>
+                    <div class="label">Median F1</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number">0.43</div>
+                    <div class="label">Median Precision</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number">0.82</div>
+                    <div class="label">Median Recall</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number" style="font-size: 2em;">17/20</div>
+                    <div class="label">پوشش پرسوناها</div>
+                </div>
+            </table>
+
+            <div class="warning">
+                <h4>⚠️ مشکل کشف شده: Rate Ratio</h4>
+                <p>
+                    <strong>Rate Ratio ≈ 1.9</strong> — یعنی سیستم تقریباً <strong>دوبرابر واقعیت Churn پیش‌بینی می‌کند!</strong>
+                </p>
+                <p>
+                    این یعنی Recall بالا (0.82) با <strong>قیمت Precision پایین</strong> (0.43) به دست آمده است.
+                </p>
+            </div>
+
+            <h3>۵.۲ نمونه نتایج per-persona</h3>
+            <table>
+                <tr>
+                    <th>Persona</th>
+                    <th>T<sub>p</sub> (روز)</th>
+                    <th>A<sub>p</sub></th>
+                    <th>F1</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                </tr>
+                <tr>
+                    <td>0</td>
+                    <td>242</td>
+                    <td>0.20</td>
+                    <td>0.51</td>
+                    <td>0.38</td>
+                    <td>0.82</td>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>251</td>
+                    <td>0.27</td>
+                    <td>0.56</td>
+                    <td>0.42</td>
+                    <td>0.82</td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td>236</td>
+                    <td>0.29</td>
+                    <td>0.56</td>
+                    <td>0.42</td>
+                    <td>0.81</td>
+                </tr>
+                <tr>
+                    <td>16</td>
+                    <td>249</td>
+                    <td>0.37</td>
+                    <td>0.64</td>
+                    <td>0.52</td>
+                    <td>0.83</td>
+                </tr>
+                <tr>
+                    <td>19</td>
+                    <td>244</td>
+                    <td>0.44</td>
+                    <td>0.71</td>
+                    <td>0.61</td>
+                    <td>0.84</td>
+                </tr>
+            </table>
+
+            <div class="danger">
+                <h4>❌ پرسوناهای بدون پارامتر</h4>
+                <p>
+                    پرسوناهای <strong>9، 14، 18</strong> پارامترهای معتبری ندارند (T<sub>p</sub> خارج از بازه‌ی مجاز یا داده‌ی کافی نبود).
+                </p>
+                <p>
+                    <strong>Coverage واقعی: 17/20 پرسونا</strong> (نه 20/20 که در برخی اسناد ادعا شده)
+                </p>
+            </div>
+
+            <h3>۵.۳ اسکریپت‌ها و فایل‌های مرتبط</h3>
+            <div class="file-reference">
+                <strong>📁 اسکریپت‌های آموزش:</strong><br>
+                • <code>src/models/xgboost/tp_ap_xgboost.py</code> — Grid Search اصلی<br>
+                • <code>src/models/xgboost/tp_ap_xgboost_enhanced.py</code> — ۴ نوع WA<br><br>
+
+                <strong>📁 اسکریپت‌های ارزیابی:</strong><br>
+                • <code>src/evaluation/simple_eval.py</code> — ارزیابی روی یک تاریخ<br>
+                • <code>src/evaluation/pragmatic_real_eval.py</code> — Sliding Window<br><br>
+
+                <strong>📄 فایل‌های خروجی:</strong><br>
+                • <code>results/best_params/tp_ap_xgb_joint_search_sliding.csv</code><br>
+                • <code>results/best_params/tp_ap_xgb_enhanced_best_params_WA_simple.csv</code><br>
+                • <code>results/evaluations/ap_tp_simple_eval.csv</code>
+            </div>
+
+            <!-- خلاصه -->
+            <h2>📌 خلاصه‌ی بخش ۲</h2>
+            <div class="highlight-box">
+                <h4>دستاوردها:</h4>
+                <ul>
+                    <li>✅ سیستم Rule-based تفسیری ساختیم با فرمول <code>WA(T<sub>p</sub>) &lt; A<sub>p</sub></code></li>
+                    <li>✅ Core Activities را با XGBoost Gain استخراج کردیم (۷ اکشن برتر)</li>
+                    <li>✅ پارامترهای <code>T<sub>p</sub></code> و <code>A<sub>p</sub></code> را به‌صورت داده‌محور تخمین زدیم</li>
+                    <li>✅ با Sliding Window پایداری را سنجیدیم</li>
+                    <li>✅ F1 ≈ 0.56 با پوشش 17/20 پرسونا</li>
+                </ul>
+
+                <h4 style="margin-top: 20px;">مشکلات کشف شده:</h4>
+                <ul>
+                    <li>❌ Rate Ratio ≈ 1.9 (over-prediction دوبرابری!)</li>
+                    <li>❌ Precision پایین (0.43)</li>
+                    <li>❌ ۳ پرسونا بدون پارامتر معتبر</li>
+                    <li>⚠️ سؤال: آیا این سیستم در طول زمان پایدار است؟</li>
+                </ul>
+            </div>
+
+            <div class="info-card">
+                <h4>🔜 در بخش بعد:</h4>
+                <p>
+                    در بخش ۳، کشف می‌کنیم که عملکرد سیستم Rule-based در طول زمان <strong>یکنواخت نیست</strong>. این ما را به مفهوم <strong>Temporal Drift</strong> و تلاش برای مقابله با آن می‌برد.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <p>پروژه پیش‌بینی Churn در Stack Overflow | بخش ۲ از ۵</p>
+            <p style="margin-top: 10px;">
+                <a href="بخش_۱_مسئله_و_داده‌ها.html" style="color: #f5576c; text-decoration: none; font-weight: bold;">← بخش قبل: مسئله و داده‌ها</a>
+                &nbsp;&nbsp;|&nbsp;&nbsp;
+                <a href="بخش_۳_کشف_Temporal_Drift.html" style="color: #f5576c; text-decoration: none; font-weight: bold;">→ بخش بعد: کشف Temporal Drift</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

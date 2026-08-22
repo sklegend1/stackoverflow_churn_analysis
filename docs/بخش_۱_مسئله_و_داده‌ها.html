@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بخش ۱ — مسئله و داده‌ها | پروژه پیش‌بینی Churn در Stack Overflow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Tahoma', 'Arial', sans-serif;
+            line-height: 1.8;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            color: #2c3e50;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header .subtitle {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+
+        .nav-links {
+            background: #f8f9fa;
+            padding: 15px 40px;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #764ba2;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin: 40px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        h3 {
+            color: #764ba2;
+            font-size: 1.5em;
+            margin: 30px 0 15px 0;
+        }
+
+        h4 {
+            color: #555;
+            font-size: 1.2em;
+            margin: 20px 0 10px 0;
+        }
+
+        p {
+            margin: 15px 0;
+            text-align: justify;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-right: 5px solid #667eea;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+
+        .formula {
+            background: #f8f9fa;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 1.3em;
+            font-family: 'Courier New', monospace;
+            direction: ltr;
+        }
+
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .code-block .comment {
+            color: #5c6370;
+        }
+
+        .code-block .keyword {
+            color: #c678dd;
+        }
+
+        .code-block .string {
+            color: #98c379;
+        }
+
+        .code-block .function {
+            color: #61afef;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .file-reference {
+            background: #fff3cd;
+            border-right: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .file-reference strong {
+            color: #856404;
+        }
+
+        .file-reference code {
+            background: #fff;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+        }
+
+        .info-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+        }
+
+        .info-card h4 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-box .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .stat-box .label {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        ul, ol {
+            margin: 15px 0 15px 40px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border-right: 5px solid #ffc107;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+
+        .success {
+            background: #d1e7dd;
+            border-right: 5px solid #198754;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 30px 40px;
+            text-align: center;
+            border-top: 2px solid #e9ecef;
+            color: #6c757d;
+        }
+
+        .architecture-diagram {
+            background: white;
+            border: 2px solid #e9ecef;
+            padding: 30px;
+            margin: 30px 0;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            direction: ltr;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>بخش ۱ — مسئله و داده‌ها</h1>
+            <div class="subtitle">پروژه پیش‌بینی ریزش کاربران در Stack Overflow</div>
+        </div>
+
+        <div class="nav-links">
+            <a href="#problem">❶ تعریف مسئله</a>
+            <a href="#data">❷ معماری داده</a>
+            <a href="#eventlog">❸ Event Log</a>
+            <a href="#scripts">❹ اسکریپت‌ها</a>
+        </div>
+
+        <div class="content">
+
+            <!-- مقدمه -->
+            <div class="highlight-box">
+                <h3>🎯 هدف این بخش</h3>
+                <p>
+                    در این بخش با مسئله‌ی پیش‌بینی ریزش کاربران (Churn Prediction) آشنا می‌شوید و یاد می‌گیرید که چگونه داده‌های خام Stack Overflow را به یک Event Log قابل استفاده برای مدل‌سازی تبدیل کنیم.
+                </p>
+            </div>
+
+            <!-- تعریف مسئله -->
+            <h2 id="problem">۱. تعریف مسئله: Churn چیست؟</h2>
+
+            <h3>۱.۱ چالش اصلی</h3>
+            <p>
+                Stack Overflow بزرگ‌ترین پلتفرم پرسش و پاسخ برنامه‌نویسی جهان است. در این پلتفرم، <strong>محتوای با کیفیت توسط کاربران خبره تولید می‌شود</strong>. یک پاسخ‌دهنده‌ی باتجربه که سال‌ها در حوزه‌ی خاصی فعالیت کرده، ارزشی غیرقابل جایگزین دارد.
+            </p>
+            <p>
+                از دست دادن چنین کاربرانی ضربه‌ای جدی به کیفیت پلتفرم وارد می‌کند. بنابراین <strong>پیش‌بینی اینکه کدام کاربران در آستانه‌ی ترک پلتفرم هستند</strong> اهمیت استراتژیک دارد.
+            </p>
+
+            <h3>۱.۲ رویکرد رفتاری</h3>
+            <div class="info-card">
+                <h4>چرا نمی‌توانیم به «حذف حساب» اکتفا کنیم؟</h4>
+                <p>
+                    در بسیاری از پروژه‌های Churn، ریزش بر اساس <strong>وضعیت حساب</strong> تعریف می‌شود: آیا کاربر اکانتش را حذف کرده؟ آیا اشتراکش را لغو کرده؟
+                </p>
+                <p>
+                    اما در Stack Overflow چنین تعریفی کارساز نیست. کاربران معمولاً اکانتشان را حذف نمی‌کنند — <strong>فقط دیگر برنمی‌گردند</strong>.
+                </p>
+            </div>
+
+            <p>
+                بنابراین در این پروژه، Churn به‌صورت <strong>رفتاری (Behavioral)</strong> تعریف شده است:
+            </p>
+
+            <div class="formula">
+                کاربر زمانی در معرض Churn قرار دارد که<br>
+                سطح فعالیت مؤثر او در یک پنجره‌ی زمانی مشخص،<br>
+                از یک آستانه‌ی حداقلی کمتر شود
+            </div>
+
+            <h3>۱.۳ فرمول پایه</h3>
+            <p>
+                برای کاربر <code>u</code> در پرسونا (گروه رفتاری) <code>p</code>:
+            </p>
+
+            <div class="formula">
+                WA(u, T<sub>p</sub>) &lt; A<sub>p</sub> ⟹ Churn Signal
+            </div>
+
+            <table>
+                <tr>
+                    <th>پارامتر</th>
+                    <th>تعریف</th>
+                    <th>واحد</th>
+                </tr>
+                <tr>
+                    <td><strong>T<sub>p</sub></strong></td>
+                    <td>پنجره‌ی زمانی مشاهده (Time Period)</td>
+                    <td>ثانیه / روز</td>
+                </tr>
+                <tr>
+                    <td><strong>A<sub>p</sub></strong></td>
+                    <td>آستانه‌ی فعالیت مؤثر (Activity Threshold)</td>
+                    <td>بدون واحد (وزن تجمیعی)</td>
+                </tr>
+                <tr>
+                    <td><strong>WA</strong></td>
+                    <td>فعالیت وزن‌دار (Weighted Activity)</td>
+                    <td>مجموع وزن‌دار اکشن‌ها</td>
+                </tr>
+            </table>
+
+            <h3>۱.۴ چرا پرسونا-محور؟</h3>
+            <p>
+                کاربران Stack Overflow رفتارهای بسیار متفاوتی دارند. اگر برای همه یک <code>T<sub>p</sub></code> و <code>A<sub>p</sub></code> ثابت تعریف کنیم، با مشکل مواجه می‌شویم:
+            </p>
+
+            <table>
+                <tr>
+                    <th>نوع کاربر</th>
+                    <th>الگوی فعالیت</th>
+                    <th>مثال</th>
+                </tr>
+                <tr>
+                    <td>پاسخ‌دهنده‌ی حرفه‌ای</td>
+                    <td>هر روز ۳-۵ پاسخ</td>
+                    <td>Jon Skeet</td>
+                </tr>
+                <tr>
+                    <td>پرسش‌کننده‌ی گاه‌به‌گاه</td>
+                    <td>هر ۲ ماه یک سؤال</td>
+                    <td>دانشجوی ترم‌محور</td>
+                </tr>
+                <tr>
+                    <td>ویراستار</td>
+                    <td>ویرایش محتوای دیگران</td>
+                    <td>Curator</td>
+                </tr>
+                <tr>
+                    <td>ناظر</td>
+                    <td>رأی‌دهی و نظارت</td>
+                    <td>Moderator</td>
+                </tr>
+            </table>
+
+            <div class="highlight-box">
+                <strong>نتیجه:</strong> پارامترهای یکسان برای همه کاربران منجر به پیش‌بینی‌های نادرست می‌شود. بنابراین پارامترها باید <strong>پرسونا-محور</strong> باشند.
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="number">92,289</div>
+                    <div class="label">کاربر هدف</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number">20</div>
+                    <div class="label">پرسونا (از NMF)</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number">2016-2023</div>
+                    <div class="label">بازه‌ی زمانی</div>
+                </div>
+            </div>
+
+            <!-- معماری داده -->
+            <h2 id="data">۲. معماری داده: از MySQL تا Event Log</h2>
+
+            <h3>۲.۱ انتخاب ابزار</h3>
+            <p>
+                با توجه به حجم بالای داده‌ها (چندین میلیون رکورد) و محدودیت منابع، استفاده از Apache Spark سنگین به نظر می‌رسید. بنابراین ترکیب زیر انتخاب شد:
+            </p>
+
+            <table>
+                <tr>
+                    <th>ابزار</th>
+                    <th>نقش</th>
+                    <th>مزیت</th>
+                </tr>
+                <tr>
+                    <td><strong>MySQL</strong></td>
+                    <td>ذخیره‌سازی اولیه</td>
+                    <td>دیتاست رسمی Stack Overflow</td>
+                </tr>
+                <tr>
+                    <td><strong>DuckDB</strong></td>
+                    <td>کوئری‌های SQL روی فایل</td>
+                    <td>Lazy، بدون Memory overhead</td>
+                </tr>
+                <tr>
+                    <td><strong>Polars</strong></td>
+                    <td>پردازش DataFrame</td>
+                    <td>Rust-based، بسیار سریع</td>
+                </tr>
+                <tr>
+                    <td><strong>Parquet</strong></td>
+                    <td>فرمت ذخیره‌سازی</td>
+                    <td>Columnar، فشرده، قابل Lazy scan</td>
+                </tr>
+            </table>
+
+            <h3>۲.۲ جریان داده</h3>
+            <div class="architecture-diagram">
+Stack Overflow XML
+    │
+    ├─► MySQL (Docker, port 3307)
+    │       │
+    │       ├── import_users.py
+    │       ├── import_posts.py
+    │       ├── import_posthistory.py
+    │       └── import_comments.py
+    │
+    ├─► filtered_users (92,289 کاربر با پرسونا)
+    ├─► filtered_posts
+    ├─► posthistory
+    └─► comments
+            │
+            ▼
+    DuckDB ATTACH TYPE mysql
+            │
+            ├── users_to_parquet.py
+            ├── posts_to_parquet.py
+            ├── posthistory_to_parquet.py
+            └── comments_to_parquet.py
+            │
+            ▼
+    data/processed/
+        ├── filtered_users_parquet/
+        ├── filtered_posts_parquet/
+        ├── posthistory_parquet/
+        └── comments_parquet/
+            │
+            ▼
+    create_eventlog_v2.py
+            │
+            ▼
+    eventlog_v2.parquet
+    (~40.6M events, 26 action types)
+            </div>
+
+            <div class="file-reference">
+                <strong>📁 اسکریپت‌های مرتبط:</strong><br>
+                • <code>src/data_engineering/import_*.py</code> — انتقال از XML به MySQL<br>
+                • <code>src/data_engineering/*_to_parquet.py</code> — تبدیل MySQL به Parquet<br>
+                • <code>src/data_engineering/create_eventlog_v2.py</code> — ساخت Event Log یکپارچه
+            </div>
+
+            <!-- Event Log -->
+            <h2 id="eventlog">۳. Event Log: قلب سیستم</h2>
+
+            <h3>۳.۱ تعریف Event Log</h3>
+            <p>
+                Event Log یک ساختار داده‌ای است که <strong>تمام رویدادهای مرتبط با کاربران</strong> را به‌صورت زمانی مرتب شده نگه می‌دارد:
+            </p>
+
+            <table>
+                <tr>
+                    <th>ستون</th>
+                    <th>نوع</th>
+                    <th>توضیح</th>
+                </tr>
+                <tr>
+                    <td><code>user_id</code></td>
+                    <td>Int64</td>
+                    <td>شناسه‌ی کاربر</td>
+                </tr>
+                <tr>
+                    <td><code>timestamp</code></td>
+                    <td>Datetime</td>
+                    <td>زمان وقوع رویداد</td>
+                </tr>
+                <tr>
+                    <td><code>action_type_id</code></td>
+                    <td>Int32</td>
+                    <td>نوع اکشن (کدگذاری شده)</td>
+                </tr>
+                <tr>
+                    <td><code>persona</code></td>
+                    <td>Int32</td>
+                    <td>شماره‌ی پرسونا (0–19)</td>
+                </tr>
+                <tr>
+                    <td><code>gap_time_actions_seconds</code></td>
+                    <td>Float64</td>
+                    <td>فاصله از اکشن قبلی (ثانیه)</td>
+                </tr>
+                <tr>
+                    <td><code>gap_time_actions_days</code></td>
+                    <td>Float64</td>
+                    <td>فاصله از اکشن قبلی (روز)</td>
+                </tr>
+            </table>
+
+            <h3>۳.۲ سه منبع رویداد</h3>
+
+            <h4>منبع ۱: ایجاد پست (Posts)</h4>
+            <div class="code-block">
+<span class="comment"># CREATE_QUESTION = 1</span>
+<span class="comment"># CREATE_ANSWER = 2</span>
+
+events_create_post = (
+    posts
+    .<span class="function">join</span>(users, left_on=<span class="string">"owneruserid"</span>, right_on=<span class="string">"user_id"</span>)
+    .<span class="function">with_columns</span>([
+        pl.<span class="keyword">when</span>(pl.col(<span class="string">"posttypeid"</span>) == 1)
+          .<span class="keyword">then</span>(pl.lit(1))  <span class="comment"># Question</span>
+          .<span class="keyword">when</span>(pl.col(<span class="string">"posttypeid"</span>) == 2)
+          .<span class="keyword">then</span>(pl.lit(2))  <span class="comment"># Answer</span>
+          .alias(<span class="string">"action_type_id"</span>),
+    ])
+)
+            </div>
+
+            <h4>منبع ۲: تاریخچه‌ی پست (PostHistory)</h4>
+            <p>
+                جدول <code>posthistory</code> شامل تمام تغییرات روی پست‌هاست. هر <code>PostHistoryTypeId</code> به یک <code>action_type_id</code> داخلی نگاشت می‌شود:
+            </p>
+
+            <table>
+                <tr>
+                    <th>PostHistoryTypeId</th>
+                    <th>action_type_id</th>
+                    <th>نام</th>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td>13</td>
+                    <td>Edit Title</td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td>14</td>
+                    <td>Edit Body</td>
+                </tr>
+                <tr>
+                    <td>6</td>
+                    <td>15</td>
+                    <td>Edit Tags</td>
+                </tr>
+                <tr>
+                    <td>10</td>
+                    <td>30</td>
+                    <td>Close Post</td>
+                </tr>
+                <tr>
+                    <td>11</td>
+                    <td>31</td>
+                    <td>Reopen Post</td>
+                </tr>
+            </table>
+
+            <div class="warning">
+                <strong>⚠️ نکته مهم:</strong> فقط رویدادهایی که <code>UserId</code> آنها در لیست کاربران هدف (<code>filtered_users</code>) است، وارد Event Log می‌شوند.
+            </div>
+
+            <h4>منبع ۳: نظرات (Comments)</h4>
+            <div class="code-block">
+<span class="comment"># COMMENT_ACTION = 70</span>
+
+events_comments = (
+    comments
+    .<span class="function">join</span>(users, left_on=<span class="string">"userid"</span>, right_on=<span class="string">"user_id"</span>)
+    .<span class="function">with_columns</span>([
+        pl.lit(70).alias(<span class="string">"action_type_id"</span>),
+    ])
+)
+            </div>
+
+            <h3>۳.۳ محاسبه‌ی Gap Time</h3>
+            <p>
+                یکی از مهم‌ترین ویژگی‌های Event Log، <strong>فاصله‌ی زمانی بین رویدادهای متوالی</strong> هر کاربر است:
+            </p>
+
+            <div class="code-block">
+<span class="comment"># مرتب‌سازی بر اساس کاربر و زمان</span>
+eventlog_lazy = eventlog_lazy.<span class="function">sort</span>([<span class="string">"user_id"</span>, <span class="string">"timestamp"</span>])
+
+<span class="comment"># محاسبه‌ی Gap Time</span>
+eventlog_lazy = eventlog_lazy.<span class="function">with_columns</span>([
+    <span class="comment"># Gap Time به ثانیه</span>
+    (pl.col(<span class="string">"timestamp"</span>)
+      .diff()
+      .over(<span class="string">"user_id"</span>) / 1_000_000)
+      .alias(<span class="string">"gap_time_actions_seconds"</span>),
+
+    <span class="comment"># Gap Time به روز</span>
+    (pl.col(<span class="string">"timestamp"</span>)
+      .diff()
+      .over(<span class="string">"user_id"</span>) / (1_000_000 * 60 * 60 * 24))
+      .alias(<span class="string">"gap_time_actions_days"</span>),
+])
+            </div>
+
+            <h3>۳.۴ چرا Votes حذف شد؟</h3>
+            <div class="info-card">
+                <h4>تصمیم مهم: حذف جدول Votes</h4>
+                <p>
+                    رأی‌هایی که یک پست دریافت می‌کند (Upvote / Downvote) نشانه‌ی فعالیت کاربر نیست. این رویدادها در واقع <strong>ری‌اکشن به محتوای کاربر</strong> هستند، نه رفتار خود کاربر.
+                </p>
+                <p>
+                    مخصوصاً اینکه بسیاری از انواع vote اصلاً <code>UserId</code> ندارند — یعنی مشخص نمی‌شود چه کسی آن رفتار را انجام داده.
+                </p>
+                <p>
+                    <strong>نتیجه:</strong> Votes به‌عنوان "event کاربر" وارد sequence نشد.
+                </p>
+            </div>
+
+            <!-- خروجی نهایی -->
+            <h2 id="scripts">۴. خروجی نهایی و اسکریپت‌ها</h2>
+
+            <h3>۴.۱ eventlog_v2.parquet</h3>
+            <div class="success">
+                <strong>✅ فایل خروجی:</strong> <code>data/processed/eventlog_v2.parquet</code><br><br>
+                <strong>مشخصات:</strong>
+                <ul>
+                    <li>حجم: ~40.6 میلیون رویداد</li>
+                    <li>تعداد action types: 26 نوع</li>
+                    <li>بازه زمانی: 2016–2023</li>
+                    <li>کاربران: 92,289 نفر</li>
+                </ul>
+            </div>
+
+            <h3>۴.۲ اسکریپت‌های مرتبط</h3>
+            <table>
+                <tr>
+                    <th>اسکریپت</th>
+                    <th>مسیر</th>
+                    <th>نقش</th>
+                </tr>
+                <tr>
+                    <td><code>import_users.py</code></td>
+                    <td><code>src/data_engineering/</code></td>
+                    <td>انتقال کاربران از XML به MySQL</td>
+                </tr>
+                <tr>
+                    <td><code>import_posts.py</code></td>
+                    <td><code>src/data_engineering/</code></td>
+                    <td>انتقال پست‌ها</td>
+                </tr>
+                <tr>
+                    <td><code>import_posthistory.py</code></td>
+                    <td><code>src/data_engineering/</code></td>
+                    <td>انتقال تاریخچه‌ی پست‌ها</td>
+                </tr>
+                <tr>
+                    <td><code>users_to_parquet.py</code></td>
+                    <td><code>src/data_engineering/</code></td>
+                    <td>تبدیل کاربران به Parquet</td>
+                </tr>
+                <tr>
+                    <td><code>create_eventlog_v2.py</code></td>
+                    <td><code>src/data_engineering/</code></td>
+                    <td>⭐ ساخت Event Log نهایی</td>
+                </tr>
+            </table>
+
+            <div class="file-reference">
+                <strong>🚀 برای اجرا:</strong><br>
+                تمام اسکریپت‌ها باید از دایرکتوری خودشان اجرا شوند:<br>
+                <code>cd src/data_engineering && python create_eventlog_v2.py</code>
+            </div>
+
+            <!-- خلاصه -->
+            <h2>📌 خلاصه‌ی بخش ۱</h2>
+            <div class="highlight-box">
+                <h4>در این بخش یاد گرفتیم:</h4>
+                <ul>
+                    <li>✅ Churn به‌صورت <strong>رفتاری</strong> تعریف می‌شود، نه بر اساس حذف حساب</li>
+                    <li>✅ فرمول پایه: <code>WA(u, T<sub>p</sub>) &lt; A<sub>p</sub></code> با پارامترهای پرسونا-محور</li>
+                    <li>✅ معماری داده: MySQL → DuckDB → Parquet → Event Log</li>
+                    <li>✅ Event Log از سه منبع ساخته می‌شود: Posts، PostHistory، Comments</li>
+                    <li>✅ محاسبه‌ی Gap Time برای تحلیل رفتار زمانی</li>
+                    <li>✅ خروجی نهایی: <code>eventlog_v2.parquet</code> با 40.6M رویداد</li>
+                </ul>
+            </div>
+
+            <div class="info-card">
+                <h4>🔜 در بخش بعد:</h4>
+                <p>
+                    در بخش ۲، یاد خواهیم گرفت که چگونه:
+                </p>
+                <ul>
+                    <li>اکشن‌های کلیدی هر پرسونا را با XGBoost استخراج کنیم</li>
+                    <li>پارامترهای <code>T<sub>p</sub></code> و <code>A<sub>p</sub></code> را تخمین بزنیم</li>
+                    <li>سیستم Rule-based تفسیری بسازیم</li>
+                    <li>عملکرد آن را ارزیابی کنیم</li>
+                </ul>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <p>پروژه پیش‌بینی Churn در Stack Overflow | بخش ۱ از ۵</p>
+            <p style="margin-top: 10px;">
+                <a href="بخش_۲_سیستم_قاعده‌مند.html" style="color: #667eea; text-decoration: none; font-weight: bold;">→ بخش بعد: سیستم قاعده‌مند</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

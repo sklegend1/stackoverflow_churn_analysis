@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>پیش‌بینی ریزش رفتاری کاربران در استک‌اورفلو — سند فنی پروژه</title>
+<style>
+@font-face { font-family:'Vazirmatn'; src:url('/home/claude/fonts/Vazirmatn-Regular.ttf'); font-weight:400; }
+@font-face { font-family:'Vazirmatn'; src:url('/home/claude/fonts/Vazirmatn-Medium.ttf'); font-weight:500; }
+@font-face { font-family:'Vazirmatn'; src:url('/home/claude/fonts/Vazirmatn-SemiBold.ttf'); font-weight:600; }
+@font-face { font-family:'Vazirmatn'; src:url('/home/claude/fonts/Vazirmatn-Bold.ttf'); font-weight:700; }
+
+:root {
+  --bg:#eef4fb;
+  --panel:#ffffff;
+  --text:#1a2533;
+  --muted:#5a6677;
+  --brand:#0e65b5;
+  --brand2:#0a457a;
+  --accent:#ef9b20;
+  --ok:#208a5d;
+  --danger:#b42318;
+  --border:#d7e2ef;
+  --shadow:0 16px 42px rgba(15,23,42,.10);
+}
+
+* { box-sizing:border-box; }
+
+html { scroll-behavior:smooth; }
+
+body {
+  margin:0;
+  font-family:'Vazirmatn',Tahoma,"Segoe UI",Arial,sans-serif;
+  direction:rtl;
+  text-align:right;
+  color:var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(14,101,181,.12), transparent 30%),
+    radial-gradient(circle at top right, rgba(239,155,32,.10), transparent 25%),
+    var(--bg);
+  font-size:15px;
+  line-height:1.9;
+}
+
+.shell {
+  max-width:1300px;
+  margin:0 auto;
+  padding:24px 14px 60px;
+}
+
+.hero {
+  background:linear-gradient(140deg,#0b1b31 0%,#0f4a86 56%,#0e65b5 100%);
+  color:#fff;
+  border-radius:28px;
+  padding:46px 38px 40px;
+  box-shadow:var(--shadow);
+  position:relative;
+  overflow:hidden;
+  min-height:270px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+.hero::before,
+.hero::after {
+  content:"";
+  position:absolute;
+  border-radius:50%;
+  background:rgba(255,255,255,.14);
+}
+
+.hero::before { width:300px;height:300px;left:-120px;top:-145px; }
+.hero::after { width:210px;height:210px;right:-45px;bottom:-105px; }
+
+.hero .eyebrow {
+  position:relative;
+  z-index:1;
+  margin:0 0 10px;
+  color:#ffd78c;
+  font-weight:700;
+  font-size:.92rem;
+  letter-spacing:.4px;
+}
+
+.hero h1 {
+  margin:0 0 12px;
+  font-size:clamp(2rem,3.2vw,2.9rem);
+  line-height:1.35;
+  position:relative;
+  z-index:1;
+  color:#fff;
+}
+
+.hero p {
+  margin:0;
+  max-width:1050px;
+  color:rgba(255,255,255,.93);
+  position:relative;
+  z-index:1;
+  font-size:1.02rem;
+  line-height:1.95;
+}
+
+.chips {
+  margin-top:18px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  position:relative;
+  z-index:1;
+}
+
+.chip {
+  padding:7px 12px;
+  border-radius:999px;
+  font-size:.86rem;
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.20);
+  backdrop-filter:blur(8px);
+}
+
+.layout {
+  margin-top:20px;
+  display:grid;
+  grid-template-columns:305px minmax(0,1fr);
+  gap:20px;
+  align-items:start;
+}
+
+.toc,
+.card {
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:22px;
+  box-shadow:var(--shadow);
+}
+
+.toc {
+  position:sticky;
+  top:16px;
+  padding:18px 14px;
+  max-height:calc(100vh - 32px);
+  overflow:auto;
+}
+
+.toc h2 {
+  margin:0 0 10px;
+  color:var(--brand2);
+  font-size:1.1rem;
+}
+
+.toc a {
+  display:block;
+  padding:8px 10px;
+  border-radius:12px;
+  text-decoration:none;
+  color:var(--text);
+  transition:background .2s,color .2s;
+  font-size:.92rem;
+  line-height:1.65;
+}
+
+.toc a:hover {
+  background:#edf5ff;
+  color:var(--brand2);
+}
+
+.content {
+  display:grid;
+  gap:18px;
+}
+
+.card {
+  padding:27px 28px;
+  scroll-margin-top:18px;
+}
+
+.card .section-label {
+  display:inline-block;
+  color:var(--brand);
+  background:#edf5ff;
+  border:1px solid #d5e7fa;
+  border-radius:999px;
+  padding:4px 10px;
+  font-size:.82rem;
+  font-weight:700;
+  margin-bottom:8px;
+}
+
+h1.section-title {
+  margin:0 0 12px;
+  padding:0 0 12px;
+  border-bottom:2px solid #dbe8f5;
+  color:var(--brand2);
+  font-size:1.42rem;
+  line-height:1.55;
+}
+
+h2 {
+  font-size:1.18rem;
+  font-weight:700;
+  color:var(--brand2);
+  margin:24px 0 10px;
+  border-right:4px solid var(--accent);
+  padding-right:11px;
+}
+
+h3 {
+  font-size:1.02rem;
+  font-weight:700;
+  color:var(--brand2);
+  margin:20px 0 8px;
+}
+
+p { margin:10px 0; text-align:justify; }
+
+ul,ol { margin:10px 0; padding-right:23px; }
+li { margin:6px 0; }
+
+.quote-box,
+.final-note {
+  background:#f7fbff;
+  border-radius:16px;
+  padding:16px 18px;
+  margin:15px 0;
+  border-right:5px solid var(--brand);
+  color:#243449;
+}
+
+.callout {
+  background:#f7fbff;
+  border-radius:16px;
+  padding:14px 16px;
+  margin:14px 0;
+  border-right:5px solid var(--brand);
+}
+
+.callout.warn {
+  background:#fff7eb;
+  border-right-color:var(--accent);
+}
+
+.callout.good {
+  background:#f3fbf7;
+  border-right-color:var(--ok);
+}
+
+table {
+  width:100%;
+  border-collapse:collapse;
+  margin:14px 0 10px;
+  border-radius:14px;
+  overflow:hidden;
+  font-size:.91rem;
+}
+
+th,td {
+  border:1px solid var(--border);
+  padding:10px 11px;
+  text-align:right;
+  vertical-align:top;
+}
+
+th {
+  background:#f2f7fd;
+  color:var(--brand2);
+  font-weight:700;
+}
+
+tr:nth-child(even) td { background:#fcfdff; }
+
+.formula {
+  direction:ltr;
+  text-align:center;
+  background:#0f172a;
+  color:#e6eef8;
+  border-radius:14px;
+  padding:12px 15px;
+  font-family:"DejaVu Sans Mono",Consolas,monospace;
+  font-size:.88rem;
+  margin:13px 0;
+  overflow:auto;
+}
+
+code,.ltr-inline {
+  direction:ltr;
+  unicode-bidi:isolate;
+  font-family:"DejaVu Sans Mono",Consolas,"Courier New",monospace;
+  background:#edf5ff;
+  color:#17466e;
+  padding:2px 7px;
+  border-radius:7px;
+  font-size:.88em;
+  display:inline-block;
+}
+
+.pipeline {
+  direction:ltr;
+  unicode-bidi:isolate;
+  text-align:center;
+  background:#f9fbff;
+  border:1px dashed #bfd2e5;
+  border-radius:14px;
+  padding:12px;
+  font-family:"DejaVu Sans Mono",Consolas,monospace;
+  font-size:.83rem;
+  margin:13px 0;
+  white-space:pre-wrap;
+  color:#34465a;
+  overflow:auto;
+}
+
+strong { color:#17263a; font-weight:700; }
+
+@media (max-width:1024px) {
+  .layout { grid-template-columns:1fr; }
+  .toc { position:static; max-height:none; }
+}
+
+@media (max-width:720px) {
+  .shell { padding:12px 10px 40px; }
+  .hero { border-radius:22px; padding:28px 20px; min-height:0; }
+  .hero h1 { font-size:1.85rem; }
+  .card { padding:20px 17px; border-radius:18px; }
+  table { display:block; overflow-x:auto; white-space:nowrap; }
+  th,td { padding:8px 9px; }
+}
+
+@media print {
+  body { background:#fff; }
+  .shell { max-width:none; padding:0; }
+  .hero,.toc,.card { box-shadow:none; }
+  .hero { border-radius:0; break-after:page; }
+  .layout { display:block; }
+  .toc { display:none; }
+  .card { border:0; border-radius:0; padding:0; margin:0 0 24px; break-inside:auto; }
+  .card + .card { break-before:page; }
+  .formula,.pipeline { break-inside:avoid; }
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <section class="hero">
+    <div class="eyebrow">سند فنی پروژه</div>
+    <h1>پیش‌بینی ریزش رفتاری کاربران<br>در استک‌اورفلو</h1>
+    <p>از قاعدهٔ تفسیرپذیر مبتنی بر پرسونا تا مدل توالی چندوظیفه‌ای (LSTM)؛ روایت کامل روش‌شناسی، نتایج و محدودیت‌های شناخته‌شده</p>
+    <div class="chips">
+      <span class="chip">Project Technical Report</span>
+      <span class="chip">Methodology</span>
+      <span class="chip">Results &amp; Validation</span>
+    </div>
+  </section>
+
+  <div class="layout">
+    <aside class="toc">
+      <h2>فهرست</h2>
+      <a href="#summary">. خلاصهٔ یک‌جمله‌ای پروژه</a><a href="#section-1">1. مسئله پیش از آنکه پیش‌بینی باشد، تعریف است</a><a href="#section-2">2. مهندسی داده: ۴۰.۶ میلیون رویداد</a><a href="#section-3">3. مرحلهٔ تفسیرپذیر: ساخت قاعده</a><a href="#section-4">4. رانش زمانی (Temporal Drift)</a><a href="#section-5">5. مدل توالی: LSTM چندوظیفه‌ای</a><a href="#section-6">6. تحلیل علت موفقیت روش</a><a href="#section-7">7. محدودیت‌های شناخته‌شده</a><a href="#section-8">8. معماری استقرار</a><a href="#section-9">9. خلاصهٔ اعداد کلیدی</a><a href="#section-10">10. تناقضات مستندشده در نسخه‌های اسناد پروژه</a>
+    </aside>
+
+    <main class="content">
+      <section class="card" id="summary">
+<div class="section-label">خلاصهٔ یک‌جمله‌ای</div>
+<h1 class="section-title">روایت کلی پروژه</h1>
+<div class="quote-box">
+در استک‌اورفلو رویدادی به‌نام «لغو اشتراک» وجود ندارد؛ بنابراین پیش از پیش‌بینیِ ریزش، لازم بود ابتدا آن به‌صورت رفتاری <strong>تعریف</strong> شود. در این پروژه یک قاعدهٔ تفسیرپذیر و مبتنی بر پرسونا (به‌صورت <span class="ltr-inline">WA &lt; Ap</span> در بازهٔ <span class="ltr-inline">Tp</span>) ساخته شد، تا سقف عملکردش پیش برده شد (<span class="ltr-inline">F1 ≈ 0.57</span>)، سپس نشان داده شد این سقف ناشی از <strong>رانش زمانی (temporal drift)</strong> است نه ضعف مدل‌سازی، و در نهایت با یک LSTM چندوظیفه‌ای روی توالی خام فعالیت‌ها از آن عبور شد (میانهٔ F1 از <strong>۰.۶۲ به ۰.۹۰</strong> در بازهٔ ۲۰۱۶ تا ۲۰۲۳، به‌طور میانگین <strong>۴۵.۸٪+</strong> بهتر از مدل پایهٔ XGBoost).
+</div>
+</section><section class="card" id="section-1">
+<div class="section-label">بخش ۱</div>
+<h1 class="section-title">مسئله پیش از آنکه پیش‌بینی باشد، تعریف است</h1>
+<p>استک‌اورفلو رویداد ریزش ندارد. کاربران حسابشان را لغو نمی‌کنند؛ فقط کم‌رنگ می‌شوند و به‌مرور محو می‌گردند. از این‌رو:</p>
+<ol>
+<li><strong>ریزش باید به‌صورت رفتاری تعریف می‌شد</strong>، مستقل از حذف یا غیرفعال‌سازی حساب کاربری.</li>
+<li><strong>یک تعریف سراسری نادرست است</strong>، چون کاربری که ماهی ۴۰ پرسش پاسخ می‌دهد با کاربری که سالی دو پرسش می‌پرسد، نمی‌توانند در یک آستانهٔ یکسان «غیرفعال» محسوب شوند.</li>
+</ol>
+<p>از همین‌جا فرمول مرکزی کل پروژه به دست می‌آید:</p>
+<div class="formula">WA(u, Tp) &lt; Ap   →   سیگنال ریزش</div>
+
+<table>
+<tr><th>نماد</th><th>معنا</th><th>نحوهٔ به‌دست‌آوردن</th></tr>
+<tr><td class="ltr-inline">Tp</td><td>بازهٔ مشاهده، به ازای هر پرسونا</td><td class="ltr-inline">Tp = α × p95(gap بین اقدامات کلیدی)</td></tr>
+<tr><td class="ltr-inline">Ap</td><td>حداقل فعالیت مؤثر، به ازای هر پرسونا</td><td>آستانهٔ برگرفته از منحنی صحت–بازخوانی</td></tr>
+<tr><td class="ltr-inline">WA</td><td>فعالیت وزن‌دار در بازه</td><td>مجموع <span class="ltr-inline">gain</span> روی اقدامات هستهٔ آن پرسونا</td></tr>
+</table>
+
+<p><strong>همه‌چیز به‌ازای هر پرسوناست.</strong> ۲۰ پرسونا، برگرفته از خوشه‌بندی پیشین NMF روی ۹۲٬۲۸۹ کاربر (پایان‌نامهٔ ه. محمدی). حروف آرکی‌تایپ در اسناد پروژه: <strong>H = یاری‌گر، C = مشارکت‌کننده، T = آموزگار، I = پرسش‌گر</strong> (به‌علاوهٔ برچسب <span class="ltr-inline">SPECIALIST</span> در یکی از اسناد). این برچسب‌ها <em>خروجی</em> خوشه‌بندی هستند، نه ورودی آن.</p>
+</section><section class="card" id="section-2">
+<div class="section-label">بخش ۲</div>
+<h1 class="section-title">مهندسی داده: ۴۰.۶ میلیون رویداد، بدون کلاستر پردازشی</h1>
+
+<table>
+<tr><th>مورد</th><th>مقدار</th></tr>
+<tr><td>کاربران</td><td>۹۲٬۲۸۹ نفر (گروه خوشه‌بندی‌شده)</td></tr>
+<tr><td>رویدادها</td><td>۴۰.۶ میلیون</td></tr>
+<tr><td>انواع اقدام متمایز</td><td>۲۶</td></tr>
+<tr><td>بازهٔ زمانی</td><td>۲۰۱۶ تا ۲۰۲۳</td></tr>
+<tr><td>زیرساخت</td><td>یک ماشین، بدون Spark</td></tr>
+</table>
+
+<p>استفاده از Spark <strong>عمداً کنار گذاشته شد</strong>، چون برای پیش‌پردازش اکتشافی در این مقیاس بیش از حد سنگین بود. در عوض، مسیر زیر طی شد:</p>
+<div class="pipeline">Stack Overflow XML  →  MySQL (Docker, port 3307)  →  DuckDB (ATTACH TYPE mysql)
+                    →  sharded Parquet  →  Polars lazy scan  →  eventlog_v2.parquet</div>
+
+<h3>تصمیم‌های مهندسی کلیدی</h3>
+<ul>
+<li><strong>سازگاری عامل (Actor).</strong> در جدول <span class="ltr-inline">posthistory</span>، فیلد <span class="ltr-inline">UserId</span> همان عامل واقعی است. اما در <span class="ltr-inline">posts</span>، فیلد <span class="ltr-inline">OwnerUserId</span> فقط مالک محتواست، نه لزوماً عامل. به همین دلیل PostHistory محور ساخت رخدادنامه قرار گرفت و از <span class="ltr-inline">posts</span> فقط برای غنی‌سازی استفاده شد. <strong>جدول <span class="ltr-inline">votes</span> به‌کلی کنار گذاشته شد</strong>، چون هیچ عامل معتبری برای آن قابل انتساب نبود.</li>
+<li><strong>یکپارچه‌سازی سه منبع رویداد</strong> در یک فضای واحد <span class="ltr-inline">action_type_id</span>: Posts (ایجاد پرسش / پاسخ)، PostHistory (ویرایش، بازگردانی، بستن، بازگشایی و…)، Comments (افزودن نظر).</li>
+<li><strong>زمان فاصله (Gap time) مهم‌ترین ویژگیِ مشتق‌شده است</strong>، محاسبه‌شده به ازای هر کاربر:
+<div class="formula">pl.col("timestamp").diff().over("user_id")   # → gap_time_actions_seconds / _days</div>
+</li>
+<li><strong>پردازش جریانی، نه حافظه‌محور:</strong> در سراسر پروژه از <span class="ltr-inline">scan_parquet(...).collect(engine="streaming")</span> استفاده شد.</li>
+</ul>
+<p>خروجی نهایی: <span class="ltr-inline">data/processed/eventlog_v2.parquet</span> — مبتنی بر رویداد، آگاه از پرسونا، مرتب‌شده بر اساس <span class="ltr-inline">(user_id, timestamp)</span> و غنی‌شده با gap.</p>
+</section><section class="card" id="section-3">
+<div class="section-label">بخش ۳</div>
+<h1 class="section-title">مرحلهٔ تفسیرپذیر: ساخت قاعده</h1>
+<p>ترتیب استخراج پارامترها در این مرحله اهمیت دارد:</p>
+
+<h3>گام ۱ — کدام اقدامات برای هر پرسونا اهمیت دارند؟</h3>
+<p>یک طبقه‌بند XGBoost یک‌در‌برابر‌بقیه به ازای هر پرسونا آموزش داده شد، اهمیت ویژگی از نوع <span class="ltr-inline">Gain</span> استخراج شد و <strong>K برتر</strong> نوع اقدام به‌عنوان «اقدامات هسته‌ای» آن پرسونا نگه داشته شد. نتیجه: فایل <span class="ltr-inline">core_activity_per_persona_named.csv</span> (پرسونا × اقدام → gain). در کد، K = ۷.</p>
+
+<h3>گام ۲ — طول بازه چقدر باید باشد؟</h3>
+<div class="formula">Tp = α × p95(gap_time_key_actions)</div>
+<p>مقدار α به ازای هر پرسونا جست‌وجو شد. نتیجهٔ اندازه‌گیری‌شده: α در بازهٔ [۵.۵ تا ۱۹.۰]، که <span class="ltr-inline">Tp</span> را در بازهٔ [۶۱ تا ۲۶۸] روز قرار می‌دهد.</p>
+
+<h3>گام ۳ — چه میزان فعالیت «کافی» محسوب می‌شود؟</h3>
+<div class="formula">WA(u, Tp) = Σ gain(e)  for core events e in [cutoff − Tp, cutoff]</div>
+<p>یک طبقه‌بند XGBoost روی WA آموزش داده شد، سپس <span class="ltr-inline">Ap</span> از روی منحنی صحت–بازخوانی انتخاب شد. نتیجهٔ اندازه‌گیری‌شده: <span class="ltr-inline">Ap</span> در بازهٔ [۰.۱۵۹ تا ۰.۴۵۷].</p>
+
+<h3>گام ۴ — برچسب‌گذاری از آینده، با دورهٔ فرصت</h3>
+<div class="formula">churn = 1  if no activity in [cutoff + grace, cutoff + grace + 365d]</div>
+<p><span class="ltr-inline">GRACE_DAYS</span> در کد برابر ۹۰ است، در مثال کاری اسناد ۱۸۰ — یک پارامتر قابل‌تنظیم است، نه یک یافتهٔ ثابت.</p>
+
+<h3>گام ۵ — ارزیابی با نقاط برش لغزان، گزارش میانه</h3>
+<p>نقاط برش از <span class="ltr-inline">۲۰۱۶-۰۱-۰۱</span> تا <span class="ltr-inline">۲۰۲۳-۰۱-۰۱</span> در نظر گرفته شدند. میانهٔ F1 گزارش شد نه میانگین، چون در برابر یک سال با نتایج نامتعارف مقاوم‌تر است. فقط کاربرانی که حداقل یک رویداد هسته‌ای در بازهٔ <span class="ltr-inline">[cutoff − Tp, cutoff]</span> داشتند واجد شرایط ارزیابی بودند — این فیلتر از تورم مصنوعی معیارها با کاربرانی که اصلاً حضور نداشته‌اند جلوگیری می‌کند.</p>
+
+<h3>دستاورد این مرحله</h3>
+<table>
+<tr><th>معیار</th><th>جست‌وجوی شبکه‌ای ساده</th><th>قاعدهٔ نهایی</th><th>تغییر</th></tr>
+<tr><td>میانگین F1</td><td>۰.۳۵۳</td><td><strong>۰.۵۷۶</strong></td><td><strong>۶۳٪+</strong></td></tr>
+<tr><td>میانگین صحت (Precision)</td><td>۰.۲۸۹</td><td>۰.۴۳۰</td><td>۴۹٪+</td></tr>
+<tr><td>میانگین بازخوانی (Recall)</td><td>۰.۴۶۰</td><td>۰.۸۱۶</td><td>۷۷٪+</td></tr>
+<tr><td>پرسوناهای پوشش‌داده‌شده</td><td>۱۳ از ۲۰</td><td>۱۷ از ۲۰</td><td>—</td></tr>
+</table>
+
+<h3>محدودیت‌های این مرحله</h3>
+<ul>
+<li><strong>نسبت نرخ ≈ ۱.۹.</strong> قاعده تقریباً <strong>دو برابر</strong> نرخ واقعی ریزش را پیش‌بینی می‌کرد. بازخوانی ۰.۸۲ با هزینهٔ صحت ۰.۴۴ به دست آمده بود.</li>
+<li><strong>پوشش ۱۷ از ۲۰ پرسونا، نه ۲۰ از ۲۰.</strong> بر اساس فایل‌های CSV: پرسوناهای ۹، ۱۴ و ۱۸ اصلاً پارامتر مبتنی بر قاعده نداشتند. جالب توجه است که پرسوناهای ۱۸ و ۹ در نهایت به دو پرسونای برتر برای مدل LSTM تبدیل شدند.</li>
+<li>در برخی نسخه‌های اسناد پروژه ادعای «پوشش ۲۰ از ۲۰» مطرح شده که با داده هم‌خوانی ندارد.</li>
+</ul>
+</section><section class="card" id="section-4">
+<div class="section-label">بخش ۴</div>
+<h1 class="section-title">رانش زمانی (Temporal Drift)</h1>
+<p>این پدیده نقطهٔ عطف روش‌شناسی پروژه بود.</p>
+
+<h3>شواهد</h3>
+<p>همان قاعده، با همان پارامترها، در نقاط برش مختلف ارزیابی شد:</p>
+<table>
+<tr><th>سال</th><th>میانهٔ F1</th></tr>
+<tr><td>۲۰۱۷</td><td>۰.۴۳</td></tr>
+<tr><td>…</td><td>…</td></tr>
+<tr><td>۲۰۲۳</td><td>۰.۶۱</td></tr>
+</table>
+<p>F1 در بازهٔ سال‌ها با نوسان ۰.۱۸± تغییر می‌کرد — شکافی نسبی معادل ۴۲٪ بین ۲۰۱۷ و ۲۰۲۳ — و پیش‌بینی بیش‌ازحد در سال‌های قدیمی‌تر بدتر بود. این عدم‌تقارن نشان می‌دهد خطا تصادفی نبوده، بلکه <strong>ساختاری</strong> بوده است.</p>
+
+<h3>علل احتمالی</h3>
+<ol>
+<li><strong>کووید (۲۰۲۰–۲۱)</strong> — موج دورکاری حجم و ریتم تعامل کاربران را تغییر داد.</li>
+<li><strong>تحول مدل‌های زبانی (۲۰۲۲ به بعد)</strong> — ChatGPT در نوامبر ۲۰۲۲ عرضه شد و Copilot نیز فراگیر شد. بخشی از توسعه‌دهندگان به‌جای استک‌اورفلو از دستیارهای هوش مصنوعی استفاده کردند و تعداد پرسش‌ها افت کرد.</li>
+<li><strong>تحول پلتفرم</strong> — تغییر سیاست‌ها، امکانات، هنجارهای اجتماعی و جمعیت‌شناسی کاربران.</li>
+</ol>
+<p>اثر خالص این عوامل: «فعالیت عادی» در سال ۲۰۱۷ معنایی متفاوت از سال ۲۰۲۳ داشت. آستانه‌ای که برای ۲۰۲۳ تنظیم شده بود، برای ۲۰۱۷ بیش‌ازحد سخت‌گیرانه بود.</p>
+
+<h3>راه‌حل‌های آزموده‌شده</h3>
+
+<p><strong>راه‌حل ۱ — ویژگی‌های بهتر.</strong> تبدیل WA به یک متغیر زمان‌آگاه:</p>
+<div class="formula">activity_trend  = clip((recent_gain + 1) / (old_gain + 1), 0.5, 2.0)   # نیمهٔ دوم در برابر نیمهٔ اول بازه
+recency_weight  = exp(-days_since_last / 30)                            # ثابت افت ۳۰ روزه
+
+WA_simple   = sum(gain)
+WA_trend    = sum(gain) × activity_trend
+WA_recency  = sum(gain) × recency_weight
+WA_enhanced = sum(gain) × activity_trend × recency_weight</div>
+
+<p>نسخه‌های مختلف اسناد پروژه برندهٔ متفاوتی برای این مرحله معرفی کرده بودند. بررسی فایل‌های خام CSV
+(<span class="ltr-inline">results/best_params/tp_ap_xgb_enhanced_best_params_WA_*.csv</span>، همگی در یک اجرا در تاریخ ۲۰۲۵-۱۲-۲۱ ساعت ۱۵:۵۱ با ۱۷ پرسونا) این موضوع را روشن کرد:</p>
+
+<table>
+<tr><th>نوع WA</th><th>میانهٔ میانهٔ F1</th><th>میانگین میانهٔ F1</th></tr>
+<tr><td>WA_simple</td><td>۰.۵۶۳۴</td><td>۰.۵۶۱۴</td></tr>
+<tr><td>WA_trend</td><td>۰.۵۷۲۷</td><td>۰.۵۷۱۲</td></tr>
+<tr><td><strong>WA_recency</strong></td><td><strong>۰.۵۷۴۷</strong></td><td><strong>۰.۵۸۰۴</strong></td></tr>
+<tr><td>WA_enhanced</td><td>۰.۵۶۵۴</td><td>۰.۵۷۴۰</td></tr>
+</table>
+<p>WA_recency هم در میانه و هم در میانگین برندهٔ این مقایسه بود؛ این نتیجه از طریق اسکریپت آموزش LSTM نیز مستقلاً تأیید می‌شود، چرا که آن اسکریپت دقیقاً فایل <span class="ltr-inline">tp_ap_xgb_enhanced_best_params_WA_recency.csv</span> را به‌عنوان مرجع Ap/Tp بارگذاری می‌کند. با این‌حال پراکندگی نتایج بین هر چهار نوع WA کوچک بود — از ۰.۵۶۱ تا ۰.۵۸۰ — که نشان می‌دهد مهندسی ویژگی در این نقطه به سقف خودش رسیده بود.</p>
+
+<p><strong>راه‌حل ۲ — کالیبراسیون.</strong></p>
+<table>
+<tr><th>روش</th><th>نتیجه</th></tr>
+<tr><td>Platt / Isotonic / Beta</td><td>Ap به ۰.۰۱ سقوط کرد — کمتر از حداقل مقدار ممکن WA. قاعده عملاً از کار افتاد.</td></tr>
+<tr><td>مقیاس‌بندی دمایی</td><td>پیش‌بینی بیش‌ازحد <em>بدتر</em> شد: نسبت نرخ ۲.۶۸ در برابر خط پایهٔ ۲.۰</td></tr>
+<tr><td>تطبیق چندکی (Quantile matching)</td><td>نرخ اصلاح شد (نسبت ۱.۱) اما F1 به ۰.۴۸ افت کرد</td></tr>
+<tr><td>مقیاس‌بندی نسبتی</td><td>F1 معادل ۰.۵۵۵، نسبت ۱.۹۵ — بدون بهبود واقعی</td></tr>
+</table>
+<p>علت شکست: کالیبراسیون فرض می‌کند رابطهٔ ویژگی→برچسب پایدار است و فقط مقیاس خروجی نادرست است. در این داده، <strong>خودِ ویژگی معنایش را در طول زمان تغییر می‌دهد</strong>، و کالیبراسیون ابزار مناسبی برای این نوع رانش نیست.</p>
+
+<p><strong>راه‌حل ۳ — ضرایب سالانه.</strong></p>
+<div class="formula">Adjusted_Ap = Ap_base × Year_Multiplier</div>
+<p>(۲۰۱۷: ۰.۸۵۰، ۲۰۱۸: ۰.۹۴۱، ۲۰۱۹: ۰.۹۱۱، ۲۰۲۰: ۰.۹۳۸، ۲۰۲۱: ۰.۹۶۱، ۲۰۲۲: ۰.۹۷۶، ۲۰۲۳: ۱.۰۰۰)</p>
+<table>
+<tr><th>رویکرد</th><th>میانهٔ F1</th><th>انحراف معیار F1</th></tr>
+<tr><td>خط پایه</td><td>۰.۵۶۰۳</td><td>۰.۱۳۰۷</td></tr>
+<tr><td>ضرایب سالانه</td><td><strong>۰.۵۶۱۸</strong></td><td>۰.۱۳۰۲</td></tr>
+<tr><td>آستانه‌های دوره‌محور</td><td>۰.۵۶۱۸</td><td>۰.۱۳۰۰</td></tr>
+</table>
+<p>بهبود حاصل‌شده تنها ۰.۰۰۱۵+ در F1 بود — رقمی که در برابر نوسان سالانهٔ ۰.۱۸± تقریباً در حد نویز است. پس از این تعدیل نیز شکاف ۲۰۱۷←۲۰۲۳ همچنان از ۰.۴۶۰ تا ۰.۶۳۵ باقی ماند. برخی نسخه‌های اسناد این نتیجه را «حفظ عملکرد یکنواخت در همهٔ سال‌ها» توصیف کرده‌اند، در حالی‌که جدول بالا این ادعا را تأیید نمی‌کند.</p>
+
+<h3>نتیجه‌گیری این مرحله</h3>
+<div class="quote-box">
+سامانهٔ مبتنی بر قاعده یک سامانهٔ <strong>آستانهٔ ثابت</strong> است. رانش زمانی خطای کالیبراسیون نیست؛ بلکه <strong>ناایستایی (non-stationarity)</strong> خودِ داده است. برای رفع ریشه‌ای آن، به مدلی نیاز است که <strong>زمان را مستقیماً یاد بگیرد.</strong>
+</div>
+<p>همین تشخیص، مبنای گذار به مدل توالی در بخش بعد است.</p>
+</section><section class="card" id="section-5">
+<div class="section-label">بخش ۵</div>
+<h1 class="section-title">مدل توالی: LSTM چندوظیفه‌ای</h1>
+<p>ایدهٔ اصلی این بخش: <span class="ltr-inline">WA</span> یک فشرده‌سازی اسکالر و دستی از یک سری زمانی است. هر تلاش برای رفع رانش زمانی در مرحلهٔ قبل، در واقع تلاشی بود برای بازتزریق اطلاعات زمانی‌ای که همان فشرده‌سازی از بین برده بود. راه‌حل نهایی، فشرده نکردن این اطلاعات بود.</p>
+
+<h3>معماری</h3>
+<div class="pipeline">Event sequence (last 50 events, each = [gain, time_delta])
+        │
+        ▼
+  LSTM(hidden=128, layers=2, dropout 0.2–0.3)
+        │
+        ▼  hidden state (128)
+        ├──── + Global features (4):  days_since_last, era, month, year
+        └──── + Persona embedding (32)
+        ▼
+    concat = 164  →  FC 256  →  FC 128
+        │
+        ├──► Head 1: churn probability (0–1)
+        ├──► Head 2: predicted Ap
+        └──► Head 3: predicted Tp (days)</div>
+
+<p><strong>تابع زیان چندوظیفه‌ای.</strong> مدل فقط طبقه‌بندی نمی‌کند، بلکه پارامترهای خودِ قاعده را نیز، به ازای هر کاربر و در هر لحظه از زمان، یاد می‌گیرد:</p>
+<div class="formula">loss = 2.0 × BCE(churn) + 1.0 × MSE(Ap) + 0.1 × MSE(Tp)</div>
+<p>اهداف Ap و Tp از نتایج قاعدهٔ مرحلهٔ تفسیرپذیر گرفته می‌شوند (<span class="ltr-inline">..._WA_recency.csv</span>). به این ترتیب مرحلهٔ تفسیرپذیر دور ریخته نشد، بلکه به سیگنال نظارتیِ فاز یادگیری عمیق تبدیل شد — یکی از یافته‌های کلیدی این روش‌شناسی.</p>
+
+<h3>ورود زمان به مدل</h3>
+<p>زمان از سه کانال مجزا وارد مدل می‌شود، که همین موضوع باعث می‌شود رانش زمانی به‌جای خطا، قابل‌یادگیری شود:</p>
+<ol>
+<li><span class="ltr-inline">time_delta</span> در دل هر رویداد از توالی (ریتم محلی)</li>
+<li><span class="ltr-inline">days_since_last</span> (تازگیِ فعلی)</li>
+<li><span class="ltr-inline">era</span> / <span class="ltr-inline">month</span> / <span class="ltr-inline">year</span> به‌عنوان ویژگی‌های سراسری (رژیم زمانی)</li>
+</ol>
+
+<h3>آموزش مدل</h3>
+<table>
+<tr><td>پارامترها</td><td><strong>۳۰۰٬۱۳۱</strong> (سبک‌وزن)</td></tr>
+<tr><td>نمونه‌های آموزشی</td><td><strong>۵۵٬۹۷۹</strong> نمونه، از ۲۰۱۷ تا ۲۰۲۲</td></tr>
+<tr><td>تقسیم زمانی</td><td>آموزش ۲۰۱۷–۲۰۲۱، اعتبارسنجی ۲۰۲۲</td></tr>
+<tr><td>خطای اعتبارسنجی (Val loss)</td><td>از ۱.۰۶ به ۰.۹۵</td></tr>
+<tr><td>زمان‌بندی بهینه‌ساز</td><td>ReduceLROnPlateau، توقف زودهنگام با صبر ۱۰، grad clip 1.0</td></tr>
+<tr><td>حجم مدل</td><td><strong>۱.۲ مگابایت</strong></td></tr>
+<tr><td>زمان آموزش</td><td>حدود ۱۵ دقیقه روی GPU</td></tr>
+<tr><td>سرعت استنتاج</td><td>حدود ۱۰۰ کاربر بر ثانیه روی GPU، ۲۰ کاربر بر ثانیه روی CPU</td></tr>
+</table>
+
+<h3>نتایج (منبع: <span class="ltr-inline">results/evaluations/lstm_eval_2016_to_2023.csv</span>)</h3>
+<table>
+<tr><th>سال</th><th>پرسوناها</th><th>کاربران</th><th>میانهٔ F1</th><th>میانگین F1</th><th>انحراف معیار F1</th><th>نسبت نرخ</th></tr>
+<tr><td>۲۰۱۶</td><td>۲۰</td><td>۱۲٬۹۴۴</td><td>۰.۶۱۵۱</td><td>۰.۶۱۲۹</td><td>۰.۰۹۲۴</td><td>۱.۱۴</td></tr>
+<tr><td>۲۰۱۷</td><td>۲۰</td><td>۱۴٬۸۵۹</td><td>۰.۶۸۱۱</td><td>۰.۶۷۳۰</td><td>۰.۰۹۳۵</td><td>۱.۰۵</td></tr>
+<tr><td>۲۰۱۸</td><td>۲۰</td><td>۱۵٬۸۹۵</td><td>۰.۷۱۷۴</td><td>۰.۷۳۵۳</td><td>۰.۰۶۳۰</td><td>۰.۹۶</td></tr>
+<tr><td>۲۰۱۹</td><td>۲۰</td><td>۱۶٬۴۸۷</td><td>۰.۷۸۵۵</td><td>۰.۷۹۹۱</td><td>۰.۰۴۶۷</td><td>۱.۰۷</td></tr>
+<tr><td>۲۰۲۰</td><td>۲۰</td><td>۱۶٬۸۶۵</td><td>۰.۸۱۸۶</td><td>۰.۸۲۷۳</td><td>۰.۰۴۲۱</td><td>۱.۱۲</td></tr>
+<tr><td>۲۰۲۱</td><td>۲۰</td><td>۱۷٬۱۵۴</td><td>۰.۸۵۴۲</td><td>۰.۸۵۹۳</td><td>۰.۰۳۴۶</td><td>۱.۱۰</td></tr>
+<tr><td>۲۰۲۲</td><td>۲۰</td><td>۱۷٬۳۵۳</td><td>۰.۸۷۷۳</td><td>۰.۸۸۴۴</td><td>۰.۰۳۲۵</td><td>۱.۰۸</td></tr>
+<tr><td>۲۰۲۳</td><td>۲۰</td><td>۱۷٬۴۴۲</td><td><strong>۰.۹۰۱۱</strong></td><td><strong>۰.۹۰۵۰</strong></td><td><strong>۰.۰۳۰۸</strong></td><td><strong>۱.۰۷</strong></td></tr>
+</table>
+<p>میانگین F1 در بازهٔ ۲۰۱۶ تا ۲۰۲۳ برابر ۰.۷۸۱۳ است؛ میانگین نسبت نرخ برابر ۱.۰۷ است.</p>
+
+<h3>مقایسهٔ دو رویکرد</h3>
+<table>
+<tr><th></th><th>قاعده‌محور / XGBoost</th><th>LSTM</th></tr>
+<tr><td>میانهٔ F1 سال ۲۰۲۱</td><td>۰.۵۸۰۹</td><td><strong>۰.۸۵۴۲</strong> (+۴۷.۱٪)</td></tr>
+<tr><td>میانهٔ F1 سال ۲۰۲۳</td><td>۰.۳۸۵۵ تا ۰.۶۴۵۴ *</td><td><strong>۰.۹۰۱۱</strong></td></tr>
+<tr><td>انحراف معیار F1</td><td>حدود ۰.۰۹ تا ۰.۱۲</td><td><strong>۰.۰۳۱ تا ۰.۰۹۲</strong></td></tr>
+<tr><td>نسبت نرخ</td><td>حدود ۱.۹ تا ۲.۰</td><td><strong>۱.۰۷</strong></td></tr>
+<tr><td>پرسوناهای پوشش‌داده‌شده</td><td>۱۷ از ۲۰</td><td><strong>۲۰ از ۲۰</strong></td></tr>
+<tr><td>روند در طول سال‌ها</td><td>در سال‌های قدیمی افت می‌کند</td><td><strong>به‌طور یکنواخت بهبود می‌یابد</strong></td></tr>
+</table>
+<p style="font-size:8.8pt; color:#767a85;">* نسخه‌های مختلف اسناد پروژه هر دو مقدار ۰.۳۸۵۵ و ۰.۶۴۵۴ را برای XGBoost در سال ۲۰۲۳ گزارش کرده‌اند، بسته به نوع پیکربندی. بازهٔ بهبود گزارش‌شده بین <strong>۳۹.۶٪ تا ۱۳۴٪</strong> است، بسته به این‌که با کدام پیکربندی XGBoost مقایسه شود. مقدار محتاطانه ۳۹.۶٪+ و میانگین بهبود در تمام سال‌ها <strong>۴۵.۸٪+</strong> است.</p>
+
+<h3>برجسته‌ترین پرسوناها (سال ۲۰۲۳)</h3>
+<table>
+<tr><th>پرسونا</th><th>F1</th><th>صحت</th><th>بازخوانی</th><th>کاربران</th></tr>
+<tr><td>۱۸</td><td><strong>۰.۹۷۱۲</strong></td><td>۰.۹۵۶۰</td><td>۰.۹۸۷۰</td><td>۲۰۷</td></tr>
+<tr><td>۹</td><td>۰.۹۴۰۴</td><td>—</td><td>—</td><td>۱٬۰۵۲</td></tr>
+<tr><td>۱۲</td><td>۰.۹۳۹۱</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td>۱۹</td><td>۰.۹۳۳۶</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td>۱۶</td><td>۰.۹۲۹۵</td><td>—</td><td>—</td><td>—</td></tr>
+</table>
+<p>همهٔ ۲۰ پرسونا در سال ۲۰۲۳ از F1 برابر ۰.۸۵ عبور کردند. نکتهٔ قابل‌توجه اینکه پرسوناهای ۱۸ و ۹ — دو پرسونای برتر مدل LSTM — دقیقاً دو تا از سه پرسونایی هستند که سامانهٔ قاعده‌محور اصلاً نتوانسته بود پوشش دهد.</p>
+<p>ضعیف‌ترین پرسوناها در طول تمام سال‌ها: پرسونای ۱۴ (میانگین F1 برابر ۰.۶۶۷۵، انحراف معیار ۰.۱۹۴۱) و پرسونای ۱۷ (۰.۷۳۴۷).</p>
+</section><section class="card" id="section-6">
+<div class="section-label">بخش ۶</div>
+<h1 class="section-title">تحلیل علت موفقیت روش</h1>
+<p>بهبود عملکرد صرفاً ناشی از «یادگیری عمیق بودن» مدل نیست. دلایل اصلی، به ترتیب:</p>
+<ol>
+<li><strong>زمان در ورودی مدل است، در نتیجه رانش زمانی به‌جای خطا، تبدیل به سیگنال می‌شود.</strong> همین دلیلی است که ضرایب سالانه شکست خوردند: آن‌ها تلاش می‌کردند اطلاعات را <em>پس از</em> نابودی‌اش اصلاح کنند.</li>
+<li><strong>هیچ مهندسی ویژگی‌ای نتوانست از سقف موجود عبور کند.</strong> چهار نوع WA در بازهٔ ۰.۵۶۱ تا ۰.۵۸۰ باقی ماندند — سقف عملکرد ناشی از مدل نبود، بلکه ناشی از فشرده‌سازی اطلاعات بود.</li>
+<li><strong>یادگیری چندوظیفه‌ای نقش تنظیم‌گر را ایفا می‌کند.</strong> وادار کردن مدل به پیش‌بینی Ap و Tp نیز، باعث می‌شود مدل یاد بگیرد <em>چرا</em> کاربری ریزش می‌کند، نه فقط <em>آیا</em> ریزش می‌کند.</li>
+<li><strong>آستانه‌های به‌ازای هر کاربر و هر لحظه</strong> جایگزین ثابت‌های به‌ازای هر پرسونا شدند. قاعدهٔ اصلی ۱۷ مقدار Ap داشت؛ LSTM عملاً یک مقدار به ازای هر کاربر در هر گام زمانی تولید می‌کند.</li>
+<li><strong>پرسونا به‌صورت جاسازی (embedding) ۳۲بعدی</strong> نمایش داده شد، نه به‌صورت ۲۰ مدل جداگانه — پرسوناهای کوچک از پرسوناهای بزرگ قدرت وام می‌گیرند. همین ویژگی باعث شد پوشش ۲۰ از ۲۰ ممکن شود، جایی‌که قاعده فقط ۱۷ از ۲۰ را پوشش می‌داد.</li>
+</ol>
+</section><section class="card" id="section-7">
+<div class="section-label">بخش ۷</div>
+<h1 class="section-title">محدودیت‌های شناخته‌شده</h1>
+
+<h3>بازتولید پرسونا</h3>
+<p>مدل اصلی NMF <strong>در دسترس نیست</strong>. تلاش‌های زیر برای بازاستخراج ۲۰ پرسونا از داده‌های موجود انجام شد:</p>
+<table>
+<tr><th>رویکرد</th><th>دقت در برابر پرسوناهای اصلی</th></tr>
+<tr><td>خوشه‌بندی مجدد NMF (۲۹ ویژگی)</td><td><strong>۷.۴۷٪</strong> (حالت تصادفی = ۵٪)</td></tr>
+<tr><td>طبقه‌بند XGBoost، ۱۹ ویژگی</td><td>۲۴.۲۳٪</td></tr>
+<tr><td>طبقه‌بند XGBoost، ۳۳ ویژگی</td><td><strong>۴۶.۰۸٪</strong> (بهترین)</td></tr>
+<tr><td>شبکهٔ عصبی، ۳۳ ویژگی</td><td>۲۸.۳۶٪</td></tr>
+<tr><td>طبقه‌بند تولیدی (نسخهٔ ۴ راهنما)</td><td>۵۰.۰٪</td></tr>
+</table>
+<p>نتیجهٔ نهایی مستند در پروژه: «طبقه‌بندی پرسونا با ویژگی‌های موجود عملی نیست»، در برابر آستانهٔ تولیدی حداقل ۶۰٪. دو علت اصلی: <span class="ltr-inline">comment_sentiment</span> (که نیازمند متن نظرات و پردازش زبان طبیعی بود) و اطلاعات جمعیت‌شناسی سنی که در داده وجود نداشت. میانگین خلوص خوشه ۱۵.۴٪ بود؛ دو خوشهٔ بازاستخراج‌شده حدود ۵۸٬۰۰۰ کاربر (۶۳٪) را با خلوص کمتر از ۵٪ در خود جای دادند.</p>
+
+<div class="callout">
+روش‌شناسی ریزش قابل‌انتقال است، اما فرض می‌کند برچسب‌های سگمنت از پیش در دسترس باشند. در این پروژه، این وابستگی از طریق طراحی <strong>اعتبارسنجی نگه‌داشته‌شده (held-out)</strong> دور زده شد (تقسیم طبقه‌ای ۸۰/۲۰ از ۹۲٬۲۸۹ کاربر، با <span class="ltr-inline">random_state=42</span> ← ۷۳٬۸۳۱ آموزش / ۱۸٬۴۵۸ نگه‌داشته‌شده) با استفاده از برچسب‌های <em>شناخته‌شده</em>، به‌جای پیش‌بینی پرسونا برای کاربران جدید.
+</div>
+
+<h3>سایر محدودیت‌ها</h3>
+<ul>
+<li><strong>سال ۲۰۱۶ ضعیف‌ترین سال است</strong> (F1 برابر ۰.۶۱۵) — کمترین دادهٔ آموزشی مربوط به همین دوره است.</li>
+<li><strong>پرسونای ۱۴ ناپایدار است</strong> (انحراف معیار ۰.۱۹)؛ پرسونای ۱۷ نیز بی‌ثباتی نسبی دارد.</li>
+<li><strong>تفسیرپذیری کاهش می‌یابد.</strong> قاعده می‌توانست دلیل تصمیم را توضیح دهد؛ LSTM در شکل فعلی این قابلیت را ندارد.</li>
+<li><strong>آموزش مدل به GPU نیاز دارد</strong> (استنتاج روی CPU نیز قابل‌اجراست).</li>
+<li><strong>رانش زمانی دوباره رخ خواهد داد.</strong> هیچ بخشی از این پروژه در برابر تغییر رفتار کاربران در نسل‌های آیندهٔ مدل‌های زبانی مصون نیست؛ بازآموزی دوره‌ای ضروری است.</li>
+<li><strong>عدم توازن کلاس</strong> در پرسوناها مشاهده می‌شود: از ۵۵۲ تا ۱۸٬۱۳۱ کاربر.</li>
+<li><strong>استخراج منطقه بر پایهٔ تطبیق کلیدواژه روی یک فیلد متن آزاد است</strong> و حدود ۶۰ تا ۸۰٪ اهمیت ویژگی‌های طبقه‌بند پرسونا را به خود اختصاص می‌دهد. در دیتاستی با قراردادهای مکانی متفاوت، این روش بدون هشدار قابل‌مشاهده شکست می‌خورد.</li>
+</ul>
+</section><section class="card" id="section-8">
+<div class="section-label">بخش ۸</div>
+<h1 class="section-title">معماری استقرار: ترکیبی، نه جایگزینی</h1>
+<p>معماری پیشنهادی هر دو سامانه را با نقش‌های متفاوت نگه می‌دارد:</p>
+<table>
+<tr><th>لایه</th><th>سامانه</th><th>نقش</th></tr>
+<tr><td>موتور پیش‌بینی</td><td><strong>LSTM</strong></td><td>امتیازدهی در تولید، سیگنال هشدار زودهنگام</td></tr>
+<tr><td>توضیح و کنترل</td><td><strong>قاعده‌محور</strong></td><td>توضیح دلیل، بررسی صحت، پایش رانش زمانی، گزارش‌دهی</td></tr>
+</table>
+
+<div class="quote-box">
+LSTM جایگزینِ شکست‌خوردهٔ سامانهٔ قاعده‌محور نیست، بلکه نتیجهٔ طبیعیِ <strong>بلوغِ تحلیل مسئله</strong> است. هر مرحله محدودیت‌های مرحلهٔ قبل را آشکار کرد و مرحلهٔ بعد را توجیه‌پذیر ساخت.
+</div>
+
+<h3>برنامهٔ اجرا</h3>
+<ol>
+<li><strong>حالت سایه (۲ تا ۳ ماه).</strong> LSTM همه‌چیز را امتیاز می‌دهد، اما تصمیم‌گیری همچنان با سامانهٔ قاعده‌محور است. هر دو خروجی ثبت می‌شوند و نرخ توافق، نتایج واقعی و تأخیر پایش می‌شود. شرط عبور از این مرحله: صحت و F1 مدل LSTM روی دادهٔ زنده باید از قاعده بهتر باشد.</li>
+<li><strong>آزمون A/B (۲ تا ۳ ماه).</strong> تقسیم ۵۰/۵۰. نرخ ماندگاری کاربر پس از هشدار و شکایات هشدار کاذب اندازه‌گیری می‌شود.</li>
+<li><strong>استقرار تدریجی.</strong> از ۵۰٪ به ۷۵٪، ۹۰٪ و سپس ۱۰۰٪، هر مرحله به مدت یک هفته. در صورت افت بیش از ۵٪ در هر معیار، هشدار صادر می‌شود. مسیر قاعده‌محور به‌عنوان جایگزین اضطراری نگه داشته می‌شود.</li>
+</ol>
+
+<div class="callout">
+هم F1 و هم نسبت نرخ (<span class="ltr-inline">rate_ratio</span>) باید به‌طور مستمر پایش شوند — تکیه بر F1 به‌تنهایی در این پروژه یک پیش‌بینی بیش‌ازحد دوبرابری را برای مدت طولانی پنهان نگه داشته بود. بازآموزی باید بر اساس یک دورهٔ زمانی مشخص (فصلی یا سالانه) انجام شود؛ نسخه‌های مختلف اسناد پروژه در این مورد با یکدیگر هماهنگ نیستند و لازم است دورهٔ نهایی مشخص شود.
+</div>
+</section><section class="card" id="section-9">
+<div class="section-label">بخش ۹</div>
+<h1 class="section-title">خلاصهٔ اعداد کلیدی</h1>
+<p>هرکدام از موارد زیر در برابر مستندات خام پروژه راستی‌آزمایی شده‌اند:</p>
+<ul>
+<li>۹۲٬۲۸۹ کاربر · ۴۰.۶ میلیون رویداد · ۲۶ نوع اقدام · ۲۰ پرسونا · بازهٔ ۲۰۱۶ تا ۲۰۲۳</li>
+<li>قاعده‌محور: <strong>F1 از ۰.۳۵۳ به ۰.۵۷۶</strong> (۶۳٪+)، بازخوانی ۰.۸۲، صحت ۰.۴۴، <strong>۱۷ از ۲۰ پرسونا</strong>، نسبت نرخ <strong>۱.۹</strong>، <span class="ltr-inline">Tp</span> در [۶۱، ۲۶۸] روز، α در [۵.۵، ۱۹.۰]، <span class="ltr-inline">Ap</span> در [۰.۱۵۹، ۰.۴۵۷]</li>
+<li>بهترین نوع WA: <strong>WA_recency</strong>، میانگین F1 برابر <strong>۰.۵۸۰۴</strong></li>
+<li>رانش زمانی: <strong>۰.۱۸± F1</strong> در طول سال‌ها؛ ضرایب سالانه فقط <strong>۰.۰۰۱۵+</strong> بهبود آوردند</li>
+<li>LSTM: <strong>۳۰۰٬۱۳۱ پارامتر</strong>، <strong>۱.۲ مگابایت</strong>، ۵۵٬۹۷۹ نمونهٔ آموزشی، خطای اعتبارسنجی از ۱.۰۶ به ۰.۹۵</li>
+<li>میانهٔ F1 مدل LSTM: از <strong>۰.۶۱۵۱ (۲۰۱۶) به ۰.۹۰۱۱ (۲۰۲۳)</strong>، میانگین <strong>۰.۷۸۱۳</strong></li>
+<li>LSTM در برابر XGBoost: میانگین <strong>۴۵.۸٪+</strong>، در سال ۲۰۲۱ معادل <strong>۴۷.۱٪+</strong>، در سال ۲۰۲۳ (حالت محتاطانه) معادل <strong>۳۹.۶٪+</strong></li>
+<li>انحراف معیار F1 مدل LSTM برابر <strong>۰.۰۳۱</strong> در سال ۲۰۲۳ در برابر حدود ۰.۰۹ تا ۰.۱۲ برای مدل قدیمی؛ نسبت نرخ <strong>۱.۰۷</strong> در برابر <strong>حدود ۲.۰</strong></li>
+<li><strong>پوشش ۲۰ از ۲۰ پرسونا</strong>، همگی بالاتر از F1 برابر ۰.۸۵ در سال ۲۰۲۳</li>
+</ul>
+</section><section class="card" id="section-10">
+<div class="section-label">بخش ۱۰</div>
+<h1 class="section-title">تناقضات مستندشده در نسخه‌های اسناد پروژه</h1>
+<table>
+<tr><th>ادعا</th><th>وضعیت واقعی بر اساس داده‌های خام</th></tr>
+<tr><td>«WA_trend برنده است (۰.۵۷۶)»</td><td>فایل‌های CSV نشان می‌دهند WA_recency برنده است، با میانگین ۰.۵۸۰۴ / میانه ۰.۵۷۴۷</td></tr>
+<tr><td>«WA_enhanced نوع نهایی است»</td><td>فقط در یکی از روایت‌ها آمده؛ نه با اعداد هم‌خوانی دارد و نه با اسکریپت LSTM</td></tr>
+<tr><td>«پوشش ۲۰ از ۲۰ پرسونا» (قاعده‌محور)</td><td>در واقع ۱۷ از ۲۰. پرسوناهای ۹، ۱۴ و ۱۸ پارامتر ندارند</td></tr>
+<tr><td>«تعدیل زمانی عملکرد یکنواخت را در همهٔ سال‌ها حفظ می‌کند»</td><td>پراکندگی پس از تعدیل همچنان از ۰.۴۶۰ تا ۰.۶۳۵ است</td></tr>
+<tr><td>«۶۶٪+ بهبود F1»</td><td>مقدار درست ۶۳٪+ است (از ۰.۳۵۳ به ۰.۵۷۶)</td></tr>
+<tr><td>«gain برابر امتیاز شهرت (reputation) است»</td><td><span class="ltr-inline">gain</span> همان اهمیت ویژگی از نوع Gain در XGBoost است؛ مفهومی کاملاً متفاوت</td></tr>
+<tr><td>«نیمه‌عمر ۳۰ روزه»</td><td>این یک ثابت افت (decay constant) ۳۰ روزه است — <span class="ltr-inline">exp(-d/30)</span></td></tr>
+</table>
+
+<div class="final-note">
+این سند روایت مرجع پروژه است. تمام اعداد در برابر فایل‌های خام موجود در پوشهٔ <span class="ltr-inline">results/</span> راستی‌آزمایی شده‌اند و در صورت تعارض میان نسخه‌های مختلف اسناد پروژه، مبنای تصمیم همواره داده‌های خام بوده است.
+</div>
+</section>
+    </main>
+  </div>
+</div>
+
+</body>
+</html>

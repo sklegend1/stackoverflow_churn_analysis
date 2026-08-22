@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>آموزش مدل LSTM با مثال اصلی پروژه</title>
+  <style>
+    :root {
+      --bg: #eff5fc;
+      --panel: #ffffff;
+      --text: #182433;
+      --muted: #5d6a7b;
+      --brand: #0f6ebc;
+      --brand2: #0a497f;
+      --accent: #e68a00;
+      --ok: #1f8f5f;
+      --border: #d8e3ef;
+      --shadow: 0 18px 46px rgba(15, 23, 42, 0.10);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Tahoma, "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(15, 110, 188, 0.14), transparent 32%),
+        radial-gradient(circle at top right, rgba(230, 138, 0, 0.10), transparent 27%),
+        var(--bg);
+      line-height: 1.92;
+    }
+
+    .shell {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px 14px 62px;
+    }
+
+    .hero {
+      background: linear-gradient(140deg, #0c1f35 0%, #0f4c88 52%, #0f6ebc 100%);
+      color: #fff;
+      border-radius: 30px;
+      padding: 36px 30px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.14);
+    }
+
+    .hero::before {
+      width: 280px;
+      height: 280px;
+      left: -100px;
+      top: -130px;
+    }
+
+    .hero::after {
+      width: 190px;
+      height: 190px;
+      right: -40px;
+      bottom: -85px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 3.1vw, 3rem);
+      line-height: 1.24;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 980px;
+      color: rgba(255,255,255,0.92);
+      font-size: 1.03rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .chips {
+      margin-top: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      font-size: 0.92rem;
+      backdrop-filter: blur(8px);
+    }
+
+    .layout {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: 296px minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .toc,
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .toc {
+      position: sticky;
+      top: 16px;
+      padding: 18px 14px;
+    }
+
+    .toc h2 {
+      margin: 0 0 10px;
+      color: var(--brand2);
+      font-size: 1.1rem;
+    }
+
+    .toc a {
+      display: block;
+      text-decoration: none;
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-size: 0.97rem;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .toc a:hover {
+      background: #edf5ff;
+      color: var(--brand2);
+    }
+
+    .content {
+      display: grid;
+      gap: 18px;
+    }
+
+    .card {
+      padding: 24px;
+    }
+
+    .head {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .head h2,
+    .head h3 {
+      margin: 0;
+      color: var(--brand2);
+      line-height: 1.26;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #d5e7fa;
+      background: #edf5ff;
+      color: var(--brand2);
+      font-size: 0.84rem;
+    }
+
+    .lead {
+      margin-top: 0;
+      color: var(--muted);
+      font-size: 1.01rem;
+    }
+
+    .note,
+    .warn,
+    .ok {
+      border-radius: 18px;
+      padding: 15px 17px;
+      margin: 15px 0;
+      border-right: 5px solid transparent;
+    }
+
+    .note {
+      background: #f7fbff;
+      border-color: var(--brand);
+    }
+
+    .warn {
+      background: #fff7eb;
+      border-color: var(--accent);
+    }
+
+    .ok {
+      background: #f2fbf6;
+      border-color: var(--ok);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 8px;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--border);
+      padding: 11px 12px;
+      vertical-align: top;
+      text-align: right;
+    }
+
+    th {
+      background: #f2f7fd;
+      color: var(--brand2);
+      font-weight: 700;
+    }
+
+    tr:nth-child(even) td {
+      background: #fcfdff;
+    }
+
+    ul,
+    ol {
+      margin: 9px 0;
+      padding-right: 22px;
+    }
+
+    .two {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .mini {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 15px;
+      background: linear-gradient(180deg, #ffffff, #fbfdff);
+    }
+
+    .mini h4 {
+      margin: 0 0 7px;
+      color: var(--brand2);
+    }
+
+    .flow {
+      display: grid;
+      gap: 11px;
+    }
+
+    .step {
+      background: #f9fbff;
+      border-right: 4px solid var(--brand);
+      border-radius: 14px;
+      padding: 11px 14px;
+    }
+
+    .step strong {
+      display: block;
+      color: var(--brand2);
+      margin-bottom: 3px;
+    }
+
+    code,
+    pre {
+      direction: ltr;
+      font-family: Consolas, "Courier New", monospace;
+    }
+
+    pre {
+      background: #0f172a;
+      color: #e6eef9;
+      border-radius: 16px;
+      padding: 14px 16px;
+      overflow: auto;
+      margin: 13px 0;
+    }
+
+    .formula {
+      background: #f7fbff;
+      border: 1px solid #dae7f7;
+      border-radius: 16px;
+      padding: 11px 13px;
+      margin: 11px 0;
+      font-size: 1.02rem;
+    }
+
+    .k {
+      display: inline-block;
+      direction: ltr;
+      padding: 2px 7px;
+      border-radius: 8px;
+      border: 1px solid #ccd8e8;
+      border-bottom-width: 2px;
+      background: #fff;
+      font-size: 0.92rem;
+    }
+
+    .small { font-size: 0.94rem; color: var(--muted); }
+    .center { text-align: center; }
+
+    @media (max-width: 1024px) {
+      .layout { grid-template-columns: 1fr; }
+      .toc { position: static; }
+    }
+
+    @media (max-width: 700px) {
+      .shell { padding: 12px 10px 40px; }
+      .hero { border-radius: 22px; padding: 24px 18px; }
+      .card { padding: 18px; }
+      .two { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; white-space: nowrap; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <h1>آموزش مدل LSTM با مثال اصلی همین پروژه</h1>
+      <p>
+        این سند فقط روی مدل LSTM تمرکز می‌کند: چرا به آن نیاز داشتیم، چگونه ساخته شد، دقیقاً چه ورودی‌هایی می‌گیرد،
+        چگونه churn و Ap و Tp را هم‌زمان پیش‌بینی می‌کند، و چگونه خروجی آن را برای یک کاربر واقعی تفسیر می‌کنیم.
+      </p>
+      <div class="chips">
+        <span class="chip">مخصوص آموزش و ارائه</span>
+        <span class="chip">مثال واقعی از پروژه</span>
+        <span class="chip">قابل فهم برای کاربر نیمه‌فنی</span>
+      </div>
+    </section>
+
+    <div class="layout">
+      <aside class="toc">
+        <h2>فهرست</h2>
+        <a href="#why">۱. چرا LSTM؟</a>
+        <a href="#principles">۲. اصول بنیادین سری زمانی</a>
+        <a href="#goal">۳. هدف مدل و خروجی‌ها</a>
+        <a href="#inputs">۴. ورودی‌های مدل</a>
+        <a href="#arch">۵. معماری شبکه</a>
+        <a href="#layers-deep">۶. تشریح تک‌تک لایه‌ها</a>
+        <a href="#loss">۷. تابع هزینه</a>
+        <a href="#example">۸. مثال اصلی پروژه</a>
+        <a href="#train">۹. آموزش و هایپرپارامترها</a>
+        <a href="#eval">۱۰. ارزیابی و تفسیر خروجی</a>
+        <a href="#teach">۱۱. چگونه این مدل را آموزش دهید</a>
+        <a href="#faq">۱۲. پرسش‌های رایج</a>
+      </aside>
+
+      <main class="content">
+        <section class="card" id="why">
+          <div class="head">
+            <h2>۱. چرا LSTM؟</h2>
+            <span class="tag">مسئله Drift</span>
+          </div>
+          <p class="lead">
+            در نسخه‌های rule-based و XGBoost، رفتار کاربر عمدتاً به چند feature تجمیعی خلاصه می‌شد. این کار تا حدی جواب
+            می‌داد، اما با تغییر الگوهای زمانی کاربران (Temporal Drift) کیفیت پیش‌بینی بین سال‌ها ناپایدار می‌شد.
+          </p>
+          <div class="warn">
+            <strong>مشکل اصلی:</strong>
+            وقتی معنا و ریتم فعالیت در طول زمان عوض می‌شود، مدل زمان‌نا‌آگاه نمی‌تواند پایدار بماند. برای همین به مدلی
+            نیاز داشتیم که خودِ توالی رویدادها و فاصله‌های زمانی را ببیند.
+          </div>
+          <div class="ok">
+            <strong>چرا LSTM مناسب بود؟</strong>
+            چون LSTM برای داده‌های ترتیبی طراحی شده و می‌تواند وابستگی‌های زمانی را حفظ کند. در این پروژه، همین موضوع
+            اجازه داد از feature خلاصه‌شده عبور کنیم و مستقیماً الگوی زمانی رفتار را وارد مدل کنیم.
+          </div>
+        </section>
+
+        <section class="card" id="principles">
+          <div class="head">
+            <h2>۲. اصول بنیادین مدل‌سازی سری زمانی</h2>
+            <span class="tag">برای دانشجوی دیتا ساینس</span>
+          </div>
+          <p class="lead">
+            قبل از معماری مدل، باید اصول سری زمانی را دقیق بفهمیم. کیفیت مدل LSTM بیشتر از هر چیز به رعایت همین اصول
+            وابسته است، نه فقط انتخاب یک شبکه پیچیده.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>اصل</th>
+                <th>تعریف ساده</th>
+                <th>هدف/کاربرد</th>
+                <th>پیاده‌سازی در این پروژه</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Temporal Order</td>
+                <td>ترتیب زمانی نمونه‌ها باید حفظ شود.</td>
+                <td>جلوگیری از یادگیری الگوهای غیرواقعی</td>
+                <td>ساخت sequence از آخرین 50 رویداد قبل از cutoff</td>
+              </tr>
+              <tr>
+                <td>Lag Dependence</td>
+                <td>گذشته روی آینده اثر دارد.</td>
+                <td>مدل‌سازی وابستگی کوتاه‌مدت و بلندمدت</td>
+                <td>LSTM با hidden state و cell state</td>
+              </tr>
+              <tr>
+                <td>Non-Stationarity</td>
+                <td>توزیع داده در زمان ثابت نیست.</td>
+                <td>مدیریت drift و تغییر رژیم رفتاری</td>
+                <td>ویژگی‌های era/year/month + ارزیابی چندساله</td>
+              </tr>
+              <tr>
+                <td>Recency Effect</td>
+                <td>رویدادهای نزدیک‌تر معمولاً مهم‌ترند.</td>
+                <td>وزن‌دهی بهتر به سیگنال‌های جدید</td>
+                <td>featureهای days_since_last و time_delta</td>
+              </tr>
+              <tr>
+                <td>Windowing</td>
+                <td>تعریف پنجره مشاهده برای هر نمونه</td>
+                <td>استانداردسازی ورودی و کاهش نویز</td>
+                <td>SEQUENCE_LENGTH=50 + cutoff-based sampling</td>
+              </tr>
+              <tr>
+                <td>Future-safe Labeling</td>
+                <td>برچسب باید از آینده و بدون leakage ساخته شود.</td>
+                <td>اعتبار علمی ارزیابی</td>
+                <td>grace period و افق زمانی 365 روزه پس از cutoff</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="note">
+            <strong>نکته آموزشی مهم:</strong>
+            اگر ترتیب زمان را بشکنید یا leakage ایجاد کنید، مدل ممکن است روی validation عالی به نظر برسد اما در تولید
+            شکست بخورد. بنابراین در سری زمانی، طراحی sampling و labeling به اندازه خود معماری مهم است.
+          </div>
+
+          <div class="formula">
+            در این پروژه، هدف پیش‌بینی در زمان t با اطلاعاتی انجام می‌شود که فقط تا قبل از t در دسترس هستند.
+          </div>
+
+          <div class="two">
+            <div class="mini">
+              <h4>اصل Bias-Variance در سری زمانی</h4>
+              <p>
+                مدل خیلی ساده drift را نمی‌بیند (Bias بالا) و مدل خیلی پیچیده ممکن است روی یک دوره تاریخی بیش‌برازش شود
+                (Variance بالا). LSTM با regularization و ارزیابی سال‌به‌سال تعادل ایجاد می‌کند.
+              </p>
+            </div>
+            <div class="mini">
+              <h4>اصل Explainability در مدل‌های زمانی</h4>
+              <p>
+                حتی اگر خروجی نهایی deep باشد، باید لایه توضیح‌پذیر داشته باشید. در این پروژه، Ap/Tp و teacher targets
+                پل ارتباطی بین مدل عملیاتی و فهم کسب‌وکار هستند.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" id="goal">
+          <div class="head">
+            <h2>۳. هدف مدل و خروجی‌ها</h2>
+            <span class="tag">Multi-Task Learning</span>
+          </div>
+          <p>
+            این LSTM فقط یک خروجی ندارد. سه هدف را هم‌زمان یاد می‌گیرد:
+          </p>
+          <ol>
+            <li>احتمال ریزش کاربر (churn probability)</li>
+            <li>پیش‌بینی آستانه Ap برای همان کاربر/سگمنت</li>
+            <li>پیش‌بینی پنجره زمانی Tp برای همان کاربر/سگمنت</li>
+          </ol>
+          <table>
+            <thead>
+              <tr>
+                <th>خروجی</th>
+                <th>نوع</th>
+                <th>کاربرد در تصمیم‌گیری</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>churn_prob</td>
+                <td>عددی بین 0 و 1</td>
+                <td>اولویت‌بندی کاربران برای مداخله retention</td>
+              </tr>
+              <tr>
+                <td>ap_pred</td>
+                <td>threshold رفتاری</td>
+                <td>مرز فعالیت «کافی/ناکافی» برای همان context</td>
+              </tr>
+              <tr>
+                <td>tp_pred</td>
+                <td>window زمانی (روز)</td>
+                <td>طول پنجره مشاهده برای قضاوت درباره ریزش</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="note">
+            <strong>مزیت مهم:</strong>
+            ترکیب این سه خروجی باعث می‌شود مدل هم پیش‌بینی‌کننده باشد، هم به زبان عملیاتی قابل توضیح بماند.
+          </div>
+        </section>
+
+        <section class="card" id="inputs">
+          <div class="head">
+            <h2>۴. ورودی‌های مدل</h2>
+            <span class="tag">از پروژه واقعی</span>
+          </div>
+          <p>
+            ورودی‌ها دقیقاً همان‌هایی هستند که در اسکریپت اصلی
+            <span class="k">src/models/lstm/lstm_temporal_ap_tp.py</span>
+            استفاده شده‌اند.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>بلوک ورودی</th>
+                <th>شکل داده</th>
+                <th>توضیح</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Event Sequence</td>
+                <td>[batch, 50, 2]</td>
+                <td>برای هر کاربر ۵۰ رویداد آخر؛ هر رویداد = <span class="k">[gain, time_delta]</span></td>
+              </tr>
+              <tr>
+                <td>Global Features</td>
+                <td>[batch, 4]</td>
+                <td><span class="k">days_since_last</span>، <span class="k">era</span>، <span class="k">month</span>، <span class="k">year</span></td>
+              </tr>
+              <tr>
+                <td>Persona Features</td>
+                <td>[batch, 10]</td>
+                <td>ویژگی‌های آماری سگمنت که بعداً به embedding 32 بعدی نگاشت می‌شوند</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="two">
+            <div class="mini">
+              <h4>time_delta چیست؟</h4>
+              <p>
+                فاصله زمانی بین دو رویداد متوالی کاربر بر حسب روز. این feature قلب زمان‌محور مدل است.
+              </p>
+            </div>
+            <div class="mini">
+              <h4>era چیست؟</h4>
+              <p>
+                در این پروژه سال‌ها به سه era نگاشت می‌شوند: pre_covid، covid، post_llm تا مدل تغییر رژیم رفتاری را بهتر ببیند.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" id="arch">
+          <div class="head">
+            <h2>۵. معماری شبکه</h2>
+            <span class="tag">مدل واقعی پروژه</span>
+          </div>
+          <div class="flow">
+            <div class="step"><strong>گام ۱: Persona Embedding</strong> ویژگی‌های سگمنت با یک لایه خطی به بردار ۳۲بعدی تبدیل می‌شوند.</div>
+            <div class="step"><strong>گام ۲: LSTM Encoder</strong> توالی ۵۰ رویدادی با LSTM دو لایه و hidden=128 پردازش می‌شود.</div>
+            <div class="step"><strong>گام ۳: Concatenate</strong> خروجی LSTM + global features + persona embedding در یک بردار ادغام می‌شوند.</div>
+            <div class="step"><strong>گام ۴: Shared FC</strong> دو لایه fully-connected مشترک، نمایش میانی یاد می‌گیرند.</div>
+            <div class="step"><strong>گام ۵: سه Head</strong> یک head برای churn، یک head برای Ap، و یک head برای Tp.</div>
+          </div>
+
+          <pre><code>Sequence(50x2) -> LSTM(hidden=128, layers=2)
+Persona(10) -> Linear -> 32d embedding
+Global(4)
+
+Concat(128 + 32 + 4 = 164)
+-> FC(256) -> FC(128)
+-> Head1: churn_prob (Sigmoid)
+-> Head2: ap_pred    (Sigmoid)
+-> Head3: tp_pred    (ReLU)</code></pre>
+
+          <table>
+            <thead>
+              <tr>
+                <th>پارامتر معماری</th>
+                <th>مقدار در پروژه</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>SEQUENCE_LENGTH</td><td>50</td></tr>
+              <tr><td>PERSONA_EMBED_DIM</td><td>32</td></tr>
+              <tr><td>LSTM_HIDDEN</td><td>128</td></tr>
+              <tr><td>NUM_LSTM_LAYERS</td><td>2</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="card" id="layers-deep">
+          <div class="head">
+            <h2>۶. تشریح تک‌تک لایه‌ها</h2>
+            <span class="tag">Layer-by-Layer Teaching</span>
+          </div>
+          <p class="lead">
+            در این بخش، هر لایه دقیقاً از نظر ورودی، عملیات، خروجی و نقش یادگیری توضیح داده می‌شود؛ طوری که یک دانشجوی
+            دیتا ساینس بتواند هم منطق ریاضی و هم هدف مهندسی را دنبال کند.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>لایه</th>
+                <th>ورودی</th>
+                <th>عملیات</th>
+                <th>خروجی</th>
+                <th>هدف</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Persona Linear</td>
+                <td>[batch, 10]</td>
+                <td>Affine transform: z = Wx + b</td>
+                <td>[batch, 32]</td>
+                <td>فشرده‌سازی ویژگی‌های persona در فضای embedding</td>
+              </tr>
+              <tr>
+                <td>Persona ReLU</td>
+                <td>[batch, 32]</td>
+                <td>max(0, z)</td>
+                <td>[batch, 32]</td>
+                <td>افزودن غیرخطی‌سازی و حذف فعال‌سازی‌های منفی ضعیف</td>
+              </tr>
+              <tr>
+                <td>LSTM (2 layers)</td>
+                <td>[batch, 50, 2]</td>
+                <td>Forget/Input/Output gates + cell update</td>
+                <td>h_n[-1] با شکل [batch,128]</td>
+                <td>مدل‌سازی وابستگی زمانی کوتاه و بلند</td>
+              </tr>
+              <tr>
+                <td>Concatenate</td>
+                <td>128 + 4 + 32</td>
+                <td>چسباندن featureها روی محور feature</td>
+                <td>[batch, 164]</td>
+                <td>ادغام سیگنال زمانی، context و persona</td>
+              </tr>
+              <tr>
+                <td>Shared FC1</td>
+                <td>[batch, 164]</td>
+                <td>Linear(164,256)+ReLU+Dropout(0.3)</td>
+                <td>[batch, 256]</td>
+                <td>استخراج نمایش میانی مشترک برای همه تسک‌ها</td>
+              </tr>
+              <tr>
+                <td>Shared FC2</td>
+                <td>[batch, 256]</td>
+                <td>Linear(256,128)+ReLU+Dropout(0.2)</td>
+                <td>[batch, 128]</td>
+                <td>فشرده‌سازی representation و regularization</td>
+              </tr>
+              <tr>
+                <td>Churn Head</td>
+                <td>[batch, 128]</td>
+                <td>Linear(128,64)+ReLU+Linear(64,1)+Sigmoid</td>
+                <td>[batch, 1]</td>
+                <td>پیش‌بینی احتمال ریزش</td>
+              </tr>
+              <tr>
+                <td>Ap Head</td>
+                <td>[batch, 128]</td>
+                <td>Linear(128,64)+ReLU+Linear(64,1)+Sigmoid</td>
+                <td>[batch, 1]</td>
+                <td>پیش‌بینی آستانه Ap در بازه (0,1)</td>
+              </tr>
+              <tr>
+                <td>Tp Head</td>
+                <td>[batch, 128]</td>
+                <td>Linear(128,64)+ReLU+Linear(64,1)+ReLU</td>
+                <td>[batch, 1]</td>
+                <td>تضمین مثبت بودن Tp پیش‌بینی‌شده</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="formula">
+            در LSTM، سه دروازه اصلی برای کنترل جریان اطلاعات داریم: فراموشی، ورود و خروج. همین سازوکار باعث حفظ
+            وابستگی‌های بلندمدت و کاهش مشکل vanishing gradient می‌شود.
+          </div>
+
+          <div class="two">
+            <div class="mini">
+              <h4>چرا dropout بعد از FC آمده است؟</h4>
+              <p>
+                چون نمایش مشترک (shared representation) اگر بدون regularization باشد، سریع روی cutoffهای آموزشی
+                overfit می‌شود. Dropout وابستگی بیش از حد به نورون‌های خاص را کاهش می‌دهد.
+              </p>
+            </div>
+            <div class="mini">
+              <h4>چرا Tp head خروجی ReLU دارد؟</h4>
+              <p>
+                Tp یک پنجره زمانی مثبت است. ReLU از تولید مقادیر منفی جلوگیری می‌کند. در training نیز loss مربوط به Tp
+                برای پایداری عددی scale می‌شود.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" id="loss">
+          <div class="head">
+            <h2>۷. تابع هزینه و منطق آن</h2>
+            <span class="tag">اولویت پیش‌بینی churn</span>
+          </div>
+          <p>
+            مدل با loss ترکیبی آموزش می‌بیند. وزن churn بیشتر است، چون هدف اصلی تصمیم‌گیری retention همین خروجی است.
+          </p>
+          <div class="formula">
+            <code>Loss = 2.0 * BCE(churn_pred, churn_true) + 1.0 * MSE(ap_pred, ap_ref) + 0.1 * MSE(tp_pred, tp_ref)</code>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>جزء loss</th>
+                <th>کارکرد</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>BCE برای churn</td>
+                <td>بهبود توان پیش‌بینی ریزش</td>
+              </tr>
+              <tr>
+                <td>MSE برای Ap</td>
+                <td>همراستاسازی مدل با آستانه‌های رفتاری teacher</td>
+              </tr>
+              <tr>
+                <td>MSE برای Tp</td>
+                <td>یادگیری پنجره زمانی مناسب برای قضاوت رفتاری</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="note">
+            <strong>نکته آموزشی:</strong>
+            ap_ref و tp_ref از خروجی مدل تفسیرپذیر مرحله قبل می‌آیند (فایل WA_recency best params)، بنابراین LSTM
+            دانش مرحله rule-based را هم در خود جذب می‌کند.
+          </div>
+        </section>
+
+        <section class="card" id="example">
+          <div class="head">
+            <h2>۸. مثال اصلی پروژه</h2>
+            <span class="tag">Walkthrough یک کاربر</span>
+          </div>
+          <p class="lead">
+            در این بخش یک مثال آموزشی نزدیک به جریان واقعی پروژه می‌زنیم تا معلوم شود مدل دقیقاً چه چیزی می‌بیند و
+            چگونه به خروجی می‌رسد.
+          </p>
+
+          <div class="flow">
+            <div class="step"><strong>سناریو</strong> کاربر U در سگمنت P قرار دارد. cutoff برابر اول ژانویه 2022 است.</div>
+            <div class="step"><strong>ورودی sequence</strong> ۵۰ رویداد آخر کاربر قبل از cutoff استخراج می‌شود.</div>
+            <div class="step"><strong>ساخت time_delta</strong> اختلاف زمانی بین هر دو رویداد متوالی محاسبه می‌شود.</div>
+            <div class="step"><strong>global feature</strong> days_since_last، month، year و era(covid/post_llm) ساخته می‌شود.</div>
+            <div class="step"><strong>teacher targets</strong> ap_ref و tp_ref از فایل best_params همان سگمنت خوانده می‌شود.</div>
+            <div class="step"><strong>پیش‌بینی نهایی</strong> مدل خروجی churn_prob، ap_pred و tp_pred را تولید می‌کند.</div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>عنصر</th>
+                <th>نمونه مقدار (آموزشی)</th>
+                <th>توضیح</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>آخرین gainها</td>
+                <td>0.11, 0.08, 0.15, ...</td>
+                <td>شدت رویدادهای هسته‌ای</td>
+              </tr>
+              <tr>
+                <td>time_delta (روز)</td>
+                <td>1.2, 0.4, 3.6, ...</td>
+                <td>ریتم حضور کاربر</td>
+              </tr>
+              <tr>
+                <td>days_since_last</td>
+                <td>27</td>
+                <td>فاصله از آخرین رویداد تا cutoff</td>
+              </tr>
+              <tr>
+                <td>era</td>
+                <td>2 (post_llm)</td>
+                <td>کانتکست زمانی کلان</td>
+              </tr>
+              <tr>
+                <td>churn_prob</td>
+                <td>0.81</td>
+                <td>ریسک بالا برای ریزش</td>
+              </tr>
+              <tr>
+                <td>ap_pred / tp_pred</td>
+                <td>0.29 / 84 روز</td>
+                <td>آستانه و پنجره پیشنهادی مدل</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="warn">
+            <strong>توجه:</strong>
+            اعداد جدول بالا برای آموزش روند هستند و لزوماً خروجی یک کاربر مشخص از فایل‌های فعلی نیستند. هدف آن است که
+            منطق end-to-end برای مخاطب نیمه‌فنی روشن شود.
+          </div>
+        </section>
+
+        <section class="card" id="train">
+          <div class="head">
+            <h2>۹. آموزش و هایپرپارامترها</h2>
+            <span class="tag">نسخه اجرایی پروژه</span>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>پارامتر</th>
+                <th>مقدار</th>
+                <th>دلیل انتخاب</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>BATCH_SIZE</td>
+                <td>256</td>
+                <td>تعادل سرعت و پایداری گرادیان</td>
+              </tr>
+              <tr>
+                <td>LEARNING_RATE</td>
+                <td>0.001</td>
+                <td>نرخ شروع مناسب برای Adam</td>
+              </tr>
+              <tr>
+                <td>NUM_EPOCHS</td>
+                <td>50</td>
+                <td>سقف آموزش با early stopping</td>
+              </tr>
+              <tr>
+                <td>ReduceLROnPlateau</td>
+                <td>factor=0.5, patience=5</td>
+                <td>کاهش LR در سکون validation</td>
+              </tr>
+              <tr>
+                <td>Early Stop</td>
+                <td>patience=10</td>
+                <td>جلوگیری از overfit</td>
+              </tr>
+              <tr>
+                <td>Gradient Clipping</td>
+                <td>1.0</td>
+                <td>پایداری آموزش LSTM</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="ok">
+            <strong>آرتیفکت‌های نهایی آموزش:</strong>
+            <span class="k">checkpoints/best_temporal_lstm_model.pt</span>
+            و
+            <span class="k">checkpoints/lstm_model_metadata.pkl</span>
+            هر دو برای ارزیابی لازم هستند.
+          </div>
+        </section>
+
+        <section class="card" id="eval">
+          <div class="head">
+            <h2>۱۰. ارزیابی و تفسیر خروجی</h2>
+            <span class="tag">برای ارائه به تیم محصول</span>
+          </div>
+          <p>
+            خروجی LSTM باید سال‌به‌سال ارزیابی شود (نه فقط یک cutoff). در پروژه، ارزیابی چندساله از 2016 تا 2023 انجام
+            شده تا اثر drift مشخص شود.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>چک ارزیابی</th>
+                <th>چرا مهم است؟</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>F1 سال‌به‌سال</td>
+                <td>نشان می‌دهد مدل در رژیم‌های زمانی مختلف چقدر پایدار است.</td>
+              </tr>
+              <tr>
+                <td>rate_ratio</td>
+                <td>اگر فقط F1 را ببینید، over-prediction ممکن است پنهان بماند.</td>
+              </tr>
+              <tr>
+                <td>تفکیک per-segment</td>
+                <td>می‌فهمید کدام سگمنت‌ها هنوز نیاز به بهبود دارند.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="note">
+            <strong>چگونه خروجی کاربر را توضیح دهیم؟</strong>
+            به‌جای گفتن «مدل گفته churn می‌شود»، بگویید: «احتمال churn بالاست، چون ریتم رویدادها کند شده، فاصله از
+            آخرین فعالیت زیاد است، و پنجره رفتاری پیش‌بینی‌شده با آستانه فعالیت فعلی همخوانی ندارد».
+          </div>
+        </section>
+
+        <section class="card" id="teach">
+          <div class="head">
+            <h2>۱۱. چگونه این مدل را آموزش دهید</h2>
+            <span class="tag">نقشه اقدام ساده</span>
+          </div>
+          <ol>
+            <li>core_eventlog_train_v1.parquet را آماده کنید (از مرحله core split).</li>
+            <li>persona statistics را آماده کنید (nmf_cluster_statistics_20.csv یا معادل پروژه خودتان).</li>
+            <li>best params teacher را آماده کنید (WA_recency best params یا معادل آن).</li>
+            <li>اسکریپت آموزش LSTM را اجرا کنید و لاگ lossها را مانیتور کنید.</li>
+            <li>دو آرتیفکت checkpoint + metadata را ذخیره کنید.</li>
+            <li>با core_eventlog_eval_v1.parquet ارزیابی چندساله را اجرا کنید.</li>
+            <li>F1 + rate_ratio + per-segment را هم‌زمان گزارش کنید.</li>
+          </ol>
+          <div class="warn">
+            <strong>قاعده مهم:</strong>
+            اگر sequence length، تعریف era یا teacher file را عوض می‌کنید، آن را به‌عنوان experiment جدید نسخه‌بندی کنید.
+          </div>
+        </section>
+
+        <section class="card" id="faq">
+          <div class="head">
+            <h2>۱۲. پرسش‌های رایج</h2>
+            <span class="tag">برای جلسه آموزشی</span>
+          </div>
+          <div class="two">
+            <div class="mini">
+              <h4>آیا می‌توانیم فقط churn head را نگه داریم؟</h4>
+              <p>
+                بله، اما معمولاً دقت و تفسیرپذیری کمتر می‌شود. در این پروژه multi-task عمداً برای نگه‌داشتن منطق Ap/Tp
+                انتخاب شده است.
+              </p>
+            </div>
+            <div class="mini">
+              <h4>چرا LSTM و نه Transformer؟</h4>
+              <p>
+                برای طول توالی ۵۰ و داده ساختارمند رفتاری، LSTM ساده‌تر، کم‌هزینه‌تر و پایدارتر بود. انتخاب Transformer
+                ممکن است خوب باشد ولی هزینه مهندسی بالاتری دارد.
+              </p>
+            </div>
+            <div class="mini">
+              <h4>اگر GPU نداشته باشیم چه می‌شود؟</h4>
+              <p>
+                inference معمولاً روی CPU ممکن است. آموزش هم ممکن است ولی زمان بالاتر می‌رود. برای train پایدار، GPU
+                توصیه می‌شود.
+              </p>
+            </div>
+            <div class="mini">
+              <h4>چطور مدل را برای مشتری توضیح دهیم؟</h4>
+              <p>
+                با سه لایه توضیح: ۱) توالی فعالیت، ۲) زمینه زمانی (era/recency)، ۳) خروجی‌های قابل عمل (churn, Ap, Tp).
+              </p>
+            </div>
+          </div>
+
+          <p class="small center" style="margin-top: 14px;">
+            این صفحه برای آموزش مدل LSTM در همین پروژه نوشته شده است و می‌تواند به عنوان handout جلسه ارائه استفاده شود.
+          </p>
+        </section>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
